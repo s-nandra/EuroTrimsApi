@@ -10,17 +10,20 @@ namespace EuroTrim.api.Controllers
     public class CustomersController : Controller
     {
         [HttpGet()]  
-        public JsonResult GetCustomers()
+        public IActionResult GetCustomers()
         {
-            return new JsonResult(CustomersDataStore.Current.Customers);
-            
+            return Ok(CustomersDataStore.Current.Customers);
         }
 
         [HttpGet("{id}")]
-        public JsonResult GetCustomer(int id)
+        public IActionResult GetCustomer(int id)
         {
-            return new JsonResult(
-                CustomersDataStore.Current.Customers.FirstOrDefault(c => c.Id == id));
+            var customerToReturn = CustomersDataStore.Current.Customers.FirstOrDefault(c => c.Id == id);
+            if (customerToReturn == null)
+            {
+                return NotFound();
+            }
+            return Ok(customerToReturn);
         }
     }
 }
