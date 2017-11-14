@@ -12,12 +12,15 @@ namespace EuroTrim.api.Controllers
         [HttpGet()]  
         public JsonResult GetCustomers()
         {
-            return new JsonResult(new List<object>()
-            {
-                new { id=1, Name="Satnam"},
-                new { id=2, Name="Indy"}
-            });
+            return new JsonResult(CustomersDataStore.Current.Customers);
             
+        }
+
+        [HttpGet("{id}")]
+        public JsonResult GetCustomer(int id)
+        {
+            return new JsonResult(
+                CustomersDataStore.Current.Customers.FirstOrDefault(c => c.Id == id));
         }
     }
 }
