@@ -17,13 +17,37 @@ namespace EuroTrim.api
                 {
                     Id = 1,
                     Name = "Satnam Nandra",
-                    Decription = "xyz"
+                    Decription = "xyz",
+                    Product = new List<ProductDto>()
+                    {
+                        new ProductDto()
+                        {
+                            Id=1,
+                            ProdName="xxx",
+                            Description="my xxx product"
+                        },
+                        new ProductDto()
+                        {
+                            Id=2,
+                            ProdName="yyy",
+                            Description="my 2nd prod"
+                        }
+                    }
                 },
                 new CustomerDto()
                 {
                     Id = 2,
                     Name = "Indy Sogi",
-                    Decription = "xyz"
+                    Decription = "xyz",
+                    Product = new List<ProductDto>()
+                    {
+                        new ProductDto()
+                        {
+                            Id=1,
+                            ProdName="xxx",
+                            Description="my xxx product"
+                        } 
+                    }
                 },
                 new CustomerDto()
                 {

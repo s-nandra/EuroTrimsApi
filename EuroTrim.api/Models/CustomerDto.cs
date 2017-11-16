@@ -11,5 +11,7 @@ namespace EuroTrim.api.Models
         public string Name { get; set; }
         public string Decription { get; set; }
         public int ContactNumber { get; set; }
+        public ICollection<ProductDto> Product { get; set; } 
+            = new List<ProductDto>();
     }
 }
