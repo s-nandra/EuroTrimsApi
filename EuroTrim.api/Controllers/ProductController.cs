@@ -66,6 +66,11 @@ namespace EuroTrim.api.Controllers
                 return BadRequest();
             }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
             var products = ProductsDataStore.Current.Products.ToList();
             var maxprodid = products.Max(p => p.Id);
 

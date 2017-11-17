@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,8 @@ namespace EuroTrim.api.Models
 {
     public class ProductForCreationDto
     {
+        [Required(ErrorMessage ="Please enter a part number")]
+        [MaxLength(100)]
         public string PartNo { get; set; }
 
         public string ProdName { get; set; }
