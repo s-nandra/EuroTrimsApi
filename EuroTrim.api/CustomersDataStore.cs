@@ -24,13 +24,23 @@ namespace EuroTrim.api
                         {
                             Id=1,
                             ProdName="xxx",
-                            Description="my xxx product"
+                            Description="my xxx product",
+                            Category = new CategoryDto()
+                            {
+                                Id=2,
+                                Name="Zipper"
+                            }
                         },
                         new ProductDto()
                         {
                             Id=2,
                             ProdName="yyy",
-                            Description="my 2nd prod"
+                            Description="my 2nd prod",
+                            Category = new CategoryDto()
+                            {
+                                Id=1,
+                                Name="Fastenings"
+                            }
                         }
                     }
                 },
@@ -45,7 +55,12 @@ namespace EuroTrim.api
                         {
                             Id=1,
                             ProdName="xxx",
-                            Description="my xxx product"
+                            Description="my xxx product",
+                            Category = new CategoryDto()
+                            {
+                                Id=2,
+                                Name="Zipper"
+                            }
                         } 
                     }
                 },
