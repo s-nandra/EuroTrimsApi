@@ -206,5 +206,26 @@ namespace EuroTrim.api.Controllers
             return NoContent();
 
         }
+
+
+        [HttpDelete("api/products/{id}")]
+        public IActionResult DeleteProduct(int id)
+        {
+            //var product  = ProductsDataStore.Current.Products.FirstOrDefault(
+            //   p => p.Id == id);
+
+            var product = ProductsDataStore.Current.Products.Find(p => p.Id == id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+   
+            ProductsDataStore.Current.Products.Remove(product);
+
+
+            return NoContent();
+        }
     }
 }
