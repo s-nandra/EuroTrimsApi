@@ -1,6 +1,7 @@
 ﻿using EuroTrim.api.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,18 +12,38 @@ namespace EuroTrim.api.Controllers
     //[Route("api/customer/{id}")]
     public class ProductController : Controller
     {
+        private ILogger<ProductController> _logger;
+
+        public ProductController(ILogger<ProductController> logger)
+        {
+            _logger = logger;
+        }
+
         [HttpGet("api/customers/{id}/products")]
         public IActionResult GetCustomerProduct(int id)
         {
-            var customer = CustomersDataStore.Current.Customers
+
+            try
+            {
+                var customer = CustomersDataStore.Current.Customers
                 .FirstOrDefault(c => c.Id == id);
 
-            if (customer == null)
+
+                if (customer == null)
+                {
+                    _logger.LogInformation($"Customer with id {id} was not found!");
+                    return NotFound();
+                }
+                return Ok(customer.Product);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogCritical($"Exceprion wile getting Customer with id {id} was not found!", ex);
+                return StatusCode(500, "A problem happened with your request");
             }
 
-            return Ok(customer.Product);
+
+
         }
 
         [HttpGet("api/customers/{id}/products/{productid}")]
@@ -177,13 +198,13 @@ namespace EuroTrim.api.Controllers
 
             product.ApplyTo(patchProduct, ModelState);
 
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
 
             }
 
-            if(productToUpdate.ProdName == patchProduct.Description)
+            if (productToUpdate.ProdName == patchProduct.Description)
             {
                 ModelState.AddModelError("Description", "Description cant be same as name");
             }
@@ -221,7 +242,7 @@ namespace EuroTrim.api.Controllers
                 return NotFound();
             }
 
-   
+
             ProductsDataStore.Current.Products.Remove(product);
 
 
