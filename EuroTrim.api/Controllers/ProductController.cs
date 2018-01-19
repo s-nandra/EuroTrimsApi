@@ -1,4 +1,5 @@
 ﻿using EuroTrim.api.Models;
+using EuroTrim.api.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,10 +14,13 @@ namespace EuroTrim.api.Controllers
     public class ProductController : Controller
     {
         private ILogger<ProductController> _logger;
+        private IMailService _mailService;
 
-        public ProductController(ILogger<ProductController> logger)
+        public ProductController(ILogger<ProductController> logger,
+            IMailService mailService)
         {
             _logger = logger;
+            _mailService = mailService;
         }
 
         [HttpGet("api/customers/{id}/products")]
@@ -244,6 +248,8 @@ namespace EuroTrim.api.Controllers
 
 
             ProductsDataStore.Current.Products.Remove(product);
+
+            _mailService.Send("product deleted", $"Product {product.ProdName} with id {product.Id} was deleted");
 
 
             return NoContent();
