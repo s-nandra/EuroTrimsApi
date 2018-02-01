@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Logging;
 using EuroTrim.api.Services;
 using Microsoft.Extensions.Configuration;
+using EuroTrim.api.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EuroTrim.api
 {
@@ -48,6 +50,10 @@ namespace EuroTrim.api
 #else
             services.AddTransient<IMailService, CloudMailService>();
 #endif
+       
+            var connectionString = Startup.Configuration["connectionStrings:euroTrimDBConnectionString"];
+            services.AddDbContext<EuroTrimContext>(o => o.UseSqlServer(connectionString));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
