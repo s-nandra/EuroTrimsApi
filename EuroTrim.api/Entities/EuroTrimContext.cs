@@ -15,8 +15,8 @@ namespace EuroTrim.api.Entities
         public EuroTrimContext(DbContextOptions<EuroTrimContext> options)
            : base(options)
         {
-            Database.EnsureCreated();
-            //Database.Migrate();
+            //Database.EnsureCreated();
+            Database.Migrate();
         }
 
     }
