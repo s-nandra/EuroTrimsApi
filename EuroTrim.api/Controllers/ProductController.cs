@@ -15,20 +15,46 @@ namespace EuroTrim.api.Controllers
     {
         private ILogger<ProductController> _logger;
         private IMailService _mailService;
+        private IEuroTrimRepository _euroTrimRepository;
 
         public ProductController(ILogger<ProductController> logger,
-            IMailService mailService)
+            IMailService mailService, IEuroTrimRepository euroTrimRepository)
         {
             _logger = logger;
             _mailService = mailService;
+            _euroTrimRepository = euroTrimRepository;
+
         }
 
-        [HttpGet("api/customers/{id}/products")]
-        public IActionResult GetCustomerProduct(int id)
+        [HttpGet("api/customers/{customerId}/products")]
+        public IActionResult GetCustomerProducts(int customerId)
         {
 
             try
             {
+                if (!_euroTrimRepository.CustomerExists(customerId))
+                {
+                    _logger.LogInformation($"Customer with id {customerId} was not found!");
+                    return NotFound();
+                }
+
+                var customerProducts = _euroTrimRepository.GetProductsForCustomer(customerId);
+
+                var customerProductsResults = new List<ProductDto>();
+                foreach (var item in customerProducts)
+                {
+                    customerProductsResults.Add(
+                        new ProductDto()
+                        {
+                            Id = item.Id,
+                            ProdName = item.ProdName,
+                            Description = item.Description
+                        });
+                }
+
+                return Ok(customerProductsResults);
+
+                /*
                 var customer = CustomersDataStore.Current.Customers
                 .FirstOrDefault(c => c.Id == id);
 
@@ -39,10 +65,11 @@ namespace EuroTrim.api.Controllers
                     return NotFound();
                 }
                 return Ok(customer.Product);
+                */
             }
             catch (Exception ex)
             {
-                _logger.LogCritical($"Exceprion wile getting Customer with id {id} was not found!", ex);
+                _logger.LogCritical($"Exceprion wile getting Customer with id {customerId} was not found!", ex);
                 return StatusCode(500, "A problem happened with your request");
             }
 
@@ -50,20 +77,42 @@ namespace EuroTrim.api.Controllers
 
         }
 
-        [HttpGet("api/customers/{id}/products/{productid}")]
-        public IActionResult GetCustomerProduct(int id, int productId)
+        [HttpGet("api/customers/{customerId}/products/{productid}")]
+        public IActionResult GetCustomerProduct(int customerId, int productId)
         {
-            var customer = CustomersDataStore.Current.Customers
-                 .FirstOrDefault(c => c.Id == id);
+            if (!_euroTrimRepository.CustomerExists(customerId))
+            {
+                _logger.LogInformation($"Customer with id {customerId} was not found!");
+                return NotFound();
+            }
 
-            if (customer == null)
+            var customerProduct = _euroTrimRepository.GetProductForCustomer(customerId, productId);
+
+            if(customerProduct == null)
             {
                 return NotFound();
             }
 
-            var product = customer.Product.FirstOrDefault(p => p.Id == productId);
+            var customerProductResult = new ProductDto()
+            {
+                Id = customerProduct.Id,
+                ProdName = customerProduct.ProdName,
+                Description = customerProduct.Description
+            };
 
-            return Ok(product);
+            return Ok(customerProductResult);
+
+            //var customer = CustomersDataStore.Current.Customers
+            //     .FirstOrDefault(c => c.Id == customerId);
+
+            //if (customer == null)
+            //{
+            //    return NotFound();
+            //}
+
+            //var product = customer.Product.FirstOrDefault(p => p.Id == productId);
+
+            //return Ok(product);
         }
 
 
