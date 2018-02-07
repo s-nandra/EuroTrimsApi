@@ -32,6 +32,8 @@ namespace EuroTrim.api.Entities
         public decimal Discount3 { get; set; }
         public decimal Discount4 { get; set; }
 
-        //public Customer Customer { get; set; }
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
+        public int CustomerId { get; set; }
     }
 }

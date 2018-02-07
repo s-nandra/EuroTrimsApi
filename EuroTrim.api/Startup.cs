@@ -54,6 +54,7 @@ namespace EuroTrim.api
             var connectionString = Startup.Configuration["connectionStrings:euroTrimDBConnectionString"];
             services.AddDbContext<EuroTrimContext>(o => o.UseSqlServer(connectionString));
 
+            services.AddScoped<IEuroTrimRepository, EuroTrimRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
