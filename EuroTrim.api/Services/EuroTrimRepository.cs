@@ -21,6 +21,11 @@ namespace EuroTrim.api.Services
             return _context.Customers.Any(c => c.Id == customerId);
         }
 
+        public bool ProductExists(int productId)
+        {
+            return _context.Products.Any(p => p.Id == productId);
+        }
+
         public Customer GetCustomer(int customerId, bool includeProduct)
         {
             if (includeProduct)
@@ -53,6 +58,28 @@ namespace EuroTrim.api.Services
         {
             return _context.Products
              .Where(p => p.CustomerId == customerId).ToList();
+        }
+
+        public void AddProductForCustomer(int customerId, Product product)
+        {
+            var customer = GetCustomer(customerId, false);
+            customer.Product.Add(product);
+            
+        }
+
+        public void AddProduct(Product product)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteProduct(Product product)
+        {
+            _context.Products.Remove(product);
+        }
+
+        public bool Save()
+        {
+            return (_context.SaveChanges() >= 0);
         }
     }
 }

@@ -80,10 +80,11 @@ namespace EuroTrim.api
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
-                cfg.CreateMap<Customer, Models.CustomersWithoutProductsDto>();
-                cfg.CreateMap<Customer, Models.CustomerDto>();
-                cfg.CreateMap<Product, Models.ProductDto>();
-
+                cfg.CreateMap<Entities.Customer, Models.CustomersWithoutProductsDto>();
+                cfg.CreateMap<Entities.Customer, Models.CustomerDto>();
+                cfg.CreateMap<Entities.Product, Models.ProductDto>();
+                cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
+                cfg.CreateMap<Models.ProductForUpdateDto, Entities.Product>();
 
             });
 

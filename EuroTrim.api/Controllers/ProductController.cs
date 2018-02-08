@@ -279,23 +279,30 @@ namespace EuroTrim.api.Controllers
         }
 
 
-        [HttpDelete("api/products/{id}")]
-        public IActionResult DeleteProduct(int id)
+        [HttpDelete("api/products/{productId}")]
+        public IActionResult DeleteProduct(int productId)
         {
-            //var product  = ProductsDataStore.Current.Products.FirstOrDefault(
-            //   p => p.Id == id);
-
-            var product = ProductsDataStore.Current.Products.Find(p => p.Id == id);
-
-            if (product == null)
+             
+            if (!_euroTrimRepository.ProductExists(productId))
             {
                 return NotFound();
             }
 
+            var productEntity = _euroTrimRepository.GetProduct(productId);
 
-            ProductsDataStore.Current.Products.Remove(product);
+            if (productEntity == null)
+            {
+                return NotFound();
+            }
 
-            _mailService.Send("product deleted", $"Product {product.ProdName} with id {product.Id} was deleted");
+            _euroTrimRepository.DeleteProduct(productEntity);
+
+            if (!_euroTrimRepository.Save())
+            {
+                return StatusCode(500, "A problem occured while deleting your product");
+            }
+ 
+            _mailService.Send("product deleted", $"Product {productEntity.ProdName} with id {productEntity.Id} was deleted");
 
 
             return NoContent();
