@@ -1,4 +1,5 @@
-﻿using EuroTrim.api.Models;
+﻿using AutoMapper;
+using EuroTrim.api.Models;
 using EuroTrim.api.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -38,8 +39,10 @@ namespace EuroTrim.api.Controllers
                     return NotFound();
                 }
 
+                
                 var customerProducts = _euroTrimRepository.GetProductsForCustomer(customerId);
-
+                
+                /* Replace with AutoMapper
                 var customerProductsResults = new List<ProductDto>();
                 foreach (var item in customerProducts)
                 {
@@ -50,7 +53,10 @@ namespace EuroTrim.api.Controllers
                             ProdName = item.ProdName,
                             Description = item.Description
                         });
-                }
+                }*/
+
+                var customerProductsResults = Mapper.Map<IEnumerable<ProductDto>>(customerProducts);
+
 
                 return Ok(customerProductsResults);
 
@@ -93,26 +99,17 @@ namespace EuroTrim.api.Controllers
                 return NotFound();
             }
 
-            var customerProductResult = new ProductDto()
-            {
-                Id = customerProduct.Id,
-                ProdName = customerProduct.ProdName,
-                Description = customerProduct.Description
-            };
+            //var customerProductResult = new ProductDto()
+            //{
+            //    Id = customerProduct.Id,
+            //    ProdName = customerProduct.ProdName,
+            //    Description = customerProduct.Description
+            //};
+
+            var customerProductResult = Mapper.Map<ProductDto>(customerProduct);
 
             return Ok(customerProductResult);
 
-            //var customer = CustomersDataStore.Current.Customers
-            //     .FirstOrDefault(c => c.Id == customerId);
-
-            //if (customer == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //var product = customer.Product.FirstOrDefault(p => p.Id == productId);
-
-            //return Ok(product);
         }
 
 

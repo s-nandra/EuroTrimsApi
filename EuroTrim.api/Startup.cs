@@ -78,6 +78,15 @@ namespace EuroTrim.api
 
             app.UseStatusCodePages();
 
+            AutoMapper.Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<Customer, Models.CustomersWithoutProductsDto>();
+                cfg.CreateMap<Customer, Models.CustomerDto>();
+                cfg.CreateMap<Product, Models.ProductDto>();
+
+
+            });
+
             app.UseMvc();
 
             //app.Run(async (context) =>
