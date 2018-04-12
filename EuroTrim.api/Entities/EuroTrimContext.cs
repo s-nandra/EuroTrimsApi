@@ -10,8 +10,11 @@ namespace EuroTrim.api.Entities
     {
         public DbSet<Product> Products { get; set; }
         public DbSet<Customer> Customers { get; set; }
+
+        public DbSet<Order> Orders { get; set; }
+
         //public DbSet<Category> Categories { get; set; }
-        
+
         public EuroTrimContext(DbContextOptions<EuroTrimContext> options)
            : base(options)
         {

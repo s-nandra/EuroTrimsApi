@@ -36,7 +36,7 @@ namespace EuroTrim.api.Migrations
 
             modelBuilder.Entity("EuroTrim.api.Entities.Customer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Address1")
@@ -68,9 +68,29 @@ namespace EuroTrim.api.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("EuroTrim.api.Entities.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<Guid>("CustomerId");
+
+                    b.Property<DateTime>("DateOrderCreated");
+
+                    b.Property<Guid>("ProductId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("EuroTrim.api.Entities.Product", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<decimal>("BuyPrice");
@@ -79,7 +99,7 @@ namespace EuroTrim.api.Migrations
 
                     b.Property<string>("Colour");
 
-                    b.Property<int?>("CustomerId");
+                    b.Property<Guid?>("CustomerId");
 
                     b.Property<string>("Description");
 
@@ -101,6 +121,8 @@ namespace EuroTrim.api.Migrations
 
                     b.Property<string>("ProdName");
 
+                    b.Property<int>("Quantity");
+
                     b.Property<string>("Size");
 
                     b.HasKey("Id");
@@ -110,6 +132,19 @@ namespace EuroTrim.api.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("EuroTrim.api.Entities.Order", b =>
+                {
+                    b.HasOne("EuroTrim.api.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EuroTrim.api.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("EuroTrim.api.Entities.Product", b =>

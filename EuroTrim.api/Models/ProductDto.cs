@@ -7,7 +7,7 @@ namespace EuroTrim.api.Models
 {
     public class ProductDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string PartNo { get; set; }
 

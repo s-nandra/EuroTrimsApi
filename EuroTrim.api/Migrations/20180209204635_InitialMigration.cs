@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace EuroTrim.api.Migrations
 {
-    public partial class EuroTrimInitialMigration : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,11 +27,15 @@ namespace EuroTrim.api.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    ContactNumber = table.Column<int>(nullable: false),
-                    Decription = table.Column<string>(nullable: true),
-                    Name = table.Column<string>(nullable: true)
+                    Id = table.Column<Guid>(nullable: false),
+                    Address1 = table.Column<string>(maxLength: 50, nullable: true),
+                    Address2 = table.Column<string>(maxLength: 50, nullable: true),
+                    City = table.Column<string>(maxLength: 20, nullable: true),
+                    Company = table.Column<string>(maxLength: 80, nullable: true),
+                    ContactNumber = table.Column<int>(maxLength: 50, nullable: false),
+                    DateCreated = table.Column<DateTime>(nullable: false),
+                    Name = table.Column<string>(maxLength: 50, nullable: false),
+                    PostCode = table.Column<string>(maxLength: 10, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -42,12 +46,11 @@ namespace EuroTrim.api.Migrations
                 name: "Products",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    Id = table.Column<Guid>(nullable: false),
                     BuyPrice = table.Column<decimal>(nullable: false),
                     CategoryId = table.Column<int>(nullable: true),
                     Colour = table.Column<string>(nullable: true),
-                    CustomerId = table.Column<int>(nullable: true),
+                    CustomerId = table.Column<Guid>(nullable: true),
                     Description = table.Column<string>(nullable: true),
                     Discount1 = table.Column<decimal>(nullable: false),
                     Discount2 = table.Column<decimal>(nullable: false),
@@ -58,6 +61,7 @@ namespace EuroTrim.api.Migrations
                     PartNo = table.Column<string>(nullable: true),
                     Per = table.Column<int>(nullable: false),
                     ProdName = table.Column<string>(nullable: true),
+                    Quantity = table.Column<int>(nullable: false),
                     Size = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -77,6 +81,42 @@ namespace EuroTrim.api.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    CustomerId = table.Column<Guid>(nullable: false),
+                    DateOrderCreated = table.Column<DateTime>(nullable: false),
+                    ProductId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CustomerId",
+                table: "Orders",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ProductId",
+                table: "Orders",
+                column: "ProductId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",
                 table: "Products",
@@ -90,6 +130,9 @@ namespace EuroTrim.api.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Orders");
+
             migrationBuilder.DropTable(
                 name: "Products");
 

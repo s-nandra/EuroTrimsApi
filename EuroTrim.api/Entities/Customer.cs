@@ -8,8 +8,8 @@ namespace EuroTrim.api.Entities
     public class Customer
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
 
         [Required]
         [MaxLength(50)]
@@ -35,6 +35,6 @@ namespace EuroTrim.api.Entities
 
         public DateTime DateCreated { get; set; }
 
-        public ICollection<Product> Product  { get; set; } = new List<Product>();
+        public ICollection<Order> Orders  { get; set; } = new List<Order>();
     }
 }

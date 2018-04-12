@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Logging;
 using EuroTrim.api.Services;
@@ -30,10 +25,15 @@ namespace EuroTrim.api
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                .AddMvcOptions(o => o.OutputFormatters.Add(
-                    new XmlDataContractSerializerOutputFormatter())
-                    );
+            services.AddMvc(setupAction =>
+            {
+                setupAction.ReturnHttpNotAcceptable = true;
+                setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
+
+
+            });
+
             //.AddJsonOptions(o =>
             //{
             //    if (o.SerializerSettings.ContractResolver != null)
@@ -71,7 +71,16 @@ namespace EuroTrim.api
             }
             else
             {
-                app.UseExceptionHandler();
+                app.UseExceptionHandler(appBuilder =>
+                {
+                    appBuilder.Run(async context =>
+                    { 
+                        context.Response.StatusCode = 500;
+                        await context.Response.WriteAsync("An unexpected fault happened. Try again later.");
+
+                    });
+                }
+                );
             }
 
             euroTrimContext.EnsureSeedDataForContext();
@@ -80,11 +89,18 @@ namespace EuroTrim.api
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
-                cfg.CreateMap<Entities.Customer, Models.CustomersWithoutProductsDto>();
                 cfg.CreateMap<Entities.Customer, Models.CustomerDto>();
+                cfg.CreateMap<Entities.Order, Models.OrderDto>();
+                cfg.CreateMap<Models.CustomerForCreationDto, Entities.Customer>();
+                cfg.CreateMap<Models.OrderForCreationDto, Entities.Order>();
                 cfg.CreateMap<Entities.Product, Models.ProductDto>();
-                cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
                 cfg.CreateMap<Models.ProductForUpdateDto, Entities.Product>();
+                cfg.CreateMap<Entities.Product, Models.ProductForUpdateDto>();
+
+                cfg.CreateMap<Entities.Customer, Models.CustomersWithoutProductsDto>();
+ 
+                cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
+                
 
             });
 

@@ -17,14 +17,14 @@ namespace EuroTrim.api
             {
                 new ProductDto()
                 {
-                    Id=1,
+                    //Id=1,
                     ProdName="xyz",
                     BuyPrice=2
 
                 },
                 new ProductDto()
                 {
-                    Id=2,
+                    //Id=2,
                     ProdName="Test",
                     BuyPrice=4
 

@@ -1,33 +1,57 @@
 ﻿using EuroTrim.api.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+ 
 
 namespace EuroTrim.api.Services
 {
     public interface IEuroTrimRepository
     {
-        bool CustomerExists(int customerId);
+        bool CustomerExists(Guid customerId);
+        bool ProductExists(Guid productId);
 
-        bool ProductExists(int productId);
-
+        Customer GetCustomer(Guid id);
+        //Customer GetCustomer(Guid customerId, bool includeProduct);
         IEnumerable<Customer> GetCustomers();
 
-        Customer GetCustomer(int customerId,bool includeProduct);
+        IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds);
 
-        IEnumerable<Product> GetProductsForCustomer(int customerId);
+        IEnumerable<Order> GetOrdersForCustomer(Guid customerId);
 
-        Product GetProduct(int productId);
 
-        Product GetProductForCustomer(int customerId, int productId);
 
-        void AddProductForCustomer(int customerId, Product product);
+
+        Order GetOrderForCustomer(Guid customerId, Guid productId);
+
+        Order GetOrderForCustomerByOrderId(Guid customerId, Guid orderId);
+
+        void AddCustomer(Customer customerEntity);
+
+        void AddOrderForCustomer(Guid customerId,  Order order);
+
+
+        IEnumerable<Product> GetProductsForCustomer(Guid customerId);
+
+
+
+        IEnumerable<Product> GetProducts();
+
+        Product GetProduct(Guid productId);
+
+        Product GetProductForCustomer(Guid customerId, Guid productId);
+   
+
+        //void AddProductForCustomer(Guid customerId, Product product);
 
         void AddProduct(Product product);
         void DeleteProduct(Product product);
+        void DeleteOrder(Order ordersForCustomerFromRepo);
 
+        void DeleteCustomer(Customer customerFromRepo);
+
+        void UpdateProduct(Product productToUpdate);
 
         bool Save();
+        
     }
 }
