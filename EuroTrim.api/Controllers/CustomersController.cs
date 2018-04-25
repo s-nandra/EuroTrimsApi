@@ -5,6 +5,7 @@ using EuroTrim.api.Models;
 using EuroTrim.api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +18,12 @@ namespace EuroTrim.api.Controllers
     {
 
         private IEuroTrimRepository _euroTrimRepository;
+        private ILogger<CustomersController> _logger;
 
-        public CustomersController(IEuroTrimRepository euroTrimRepository)
+        public CustomersController(IEuroTrimRepository euroTrimRepository,
+            ILogger<CustomersController> logger)
         {
+            _logger = logger;
             _euroTrimRepository = euroTrimRepository;
         }
 
@@ -89,7 +93,7 @@ namespace EuroTrim.api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteAuthor(Guid id)
+        public IActionResult DeleteCustomer(Guid id)
         {
             var customerFromRepo = _euroTrimRepository.GetCustomer(id);
             if (customerFromRepo == null)
@@ -103,6 +107,8 @@ namespace EuroTrim.api.Controllers
             {
                 throw new Exception($"Deleting customer {id} failed on save.");
             }
+
+            _logger.LogInformation(100, $"Customer {id} was deleted.");
 
             return NoContent();
         }

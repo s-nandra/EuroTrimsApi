@@ -14,7 +14,8 @@ namespace EuroTrim.api.Models
 
         public string ProdName { get; set; }
 
-        public string Description { get; set; }
+        [MaxLength(500, ErrorMessage ="The description should't exceed 500 characters")]
+        public virtual string Description { get; set; }
 
         public CategoryDto Category { get; set; }
         // Category 

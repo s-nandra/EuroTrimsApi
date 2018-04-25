@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EuroTrim.api.Entities;
+using EuroTrim.api.Helpers;
 using EuroTrim.api.Models;
 using EuroTrim.api.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -65,6 +66,8 @@ namespace EuroTrim.api.Controllers
                 return BadRequest();
             }
 
+ 
+
             //if (!ModelState.IsValid)
             //{
             //    return BadRequest(ModelState);
@@ -81,6 +84,7 @@ namespace EuroTrim.api.Controllers
             {
                 return NotFound();
             }
+
 
             Mapper.Map(product, productToUpdate);
 
@@ -130,9 +134,16 @@ namespace EuroTrim.api.Controllers
 
             var productToPatch = Mapper.Map<ProductForUpdateDto>(productEntity);
 
+            //patchDoc.ApplyTo(productToPatch, ModelState);
             patchDoc.ApplyTo(productToPatch);
 
 
+            TryValidateModel(productToPatch);
+
+            if (!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
 
             Mapper.Map(productToPatch, productEntity);
 

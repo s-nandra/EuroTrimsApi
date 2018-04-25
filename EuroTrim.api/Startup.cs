@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using EuroTrim.api.Entities;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace EuroTrim.api
 {
     public class Startup
@@ -63,9 +64,12 @@ namespace EuroTrim.api
         {
             loggerFactory.AddConsole();
 
-            loggerFactory.AddDebug();
+            loggerFactory.AddDebug(LogLevel.Information);
 
-            if (env.IsDevelopment())
+            // loggerFactory.AddProvider(new NLog.Extensions.Logging.NLogLoggerProvider())
+            //loggerFactory.AddNLog();
+
+            if (!env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -74,7 +78,16 @@ namespace EuroTrim.api
                 app.UseExceptionHandler(appBuilder =>
                 {
                     appBuilder.Run(async context =>
-                    { 
+                    {
+                        var exceptionHandlerFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+                        if(exceptionHandlerFeature != null)
+                        {
+                            var logger = loggerFactory.CreateLogger("Global exception logger");
+
+                            logger.LogError(500,
+                                exceptionHandlerFeature.Error,
+                                exceptionHandlerFeature.Error.Message);
+                        }
                         context.Response.StatusCode = 500;
                         await context.Response.WriteAsync("An unexpected fault happened. Try again later.");
 
