@@ -8,7 +8,9 @@ using EuroTrim.api.Services;
 using Microsoft.Extensions.Configuration;
 using EuroTrim.api.Entities;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace EuroTrim.api
 {
@@ -56,6 +58,19 @@ namespace EuroTrim.api
             services.AddDbContext<EuroTrimContext>(o => o.UseSqlServer(connectionString));
 
             services.AddScoped<IEuroTrimRepository, EuroTrimRepository>();
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddScoped<IUrlHelper>(implementationFactory =>
+            {
+                var actionContext = implementationFactory.GetService<IActionContextAccessor>()
+                .ActionContext;
+                return new UrlHelper(actionContext);
+            });
+
+            //services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+
+           // services.AddTransient<ITypeHelperService, TypeHelperService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -69,7 +84,7 @@ namespace EuroTrim.api
             // loggerFactory.AddProvider(new NLog.Extensions.Logging.NLogLoggerProvider())
             //loggerFactory.AddNLog();
 
-            if (!env.IsDevelopment())
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }

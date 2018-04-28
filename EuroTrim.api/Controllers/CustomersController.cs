@@ -19,21 +19,88 @@ namespace EuroTrim.api.Controllers
 
         private IEuroTrimRepository _euroTrimRepository;
         private ILogger<CustomersController> _logger;
+        private IUrlHelper _urlHelper;
 
         public CustomersController(IEuroTrimRepository euroTrimRepository,
-            ILogger<CustomersController> logger)
+            ILogger<CustomersController> logger, IUrlHelper urlHelper)
         {
             _logger = logger;
             _euroTrimRepository = euroTrimRepository;
+            _urlHelper = urlHelper;
         }
 
-        [HttpGet()]
-        public IActionResult GetCustomers()
+        [HttpGet(Name ="GetCustomers")]
+        public IActionResult GetCustomers(
+            CustomersResourceParameters customersResourceParameters)
         {
-            var customerEntities = _euroTrimRepository.GetCustomers();
+          
+            var customerEntities = _euroTrimRepository.GetCustomers(customersResourceParameters);
+
+            var previousPageLink = customerEntities.HasNext ?
+                CreateCustomersResourceUri(customersResourceParameters, 
+                ResourceUriType.PreviousPage) : null;
+
+            var nextPageLink = customerEntities.HasNext ?
+            CreateCustomersResourceUri(customersResourceParameters,
+            ResourceUriType.NextPage) : null;
+
+            var paginationMetadata = new
+            {
+                totalCount = customerEntities.TotalCount,
+                pageSize = customerEntities.PageSize,
+                currentPage = customerEntities.CurrentPage,
+                totalPages = customerEntities.TotalPages,
+                previousPageLink = previousPageLink,
+                nextPageLink = nextPageLink
+            };
+
+            Response.Headers.Add("X-Pagination",
+                Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
             var results = Mapper.Map<IEnumerable<CustomerDto>>(customerEntities);
-            return Ok(results);
+            return Ok(results); 
+        }
+
+        private string CreateCustomersResourceUri(CustomersResourceParameters customersResourceParameters,
+            ResourceUriType type)
+        {
+            switch (type)
+            {
+                case ResourceUriType.PreviousPage:
+                    return _urlHelper.Link("GetCustomers",
+                      new
+                      {
+                          //fields = customersResourceParameters.Fields,
+                          //orderBy = customersResourceParameters.OrderBy,
+                          searchQuery = customersResourceParameters.SearchQuery,
+                          city = customersResourceParameters.City,
+                          pageNumber = customersResourceParameters.PageNumber - 1,
+                          pageSize = customersResourceParameters.PageSize
+                      });
+                case ResourceUriType.NextPage:
+                    return _urlHelper.Link("GetCustomers",
+                      new
+                      {
+                          //fields = authorsResourcustomersResourceParametersceParameters.Fields,
+                          //orderBy = customersResourceParameters.OrderBy,
+                          searchQuery = customersResourceParameters.SearchQuery,
+                          city = customersResourceParameters.City,
+                          pageNumber = customersResourceParameters.PageNumber + 1,
+                          pageSize = customersResourceParameters.PageSize
+                      });
+                case ResourceUriType.Current:
+                default:
+                    return _urlHelper.Link("GetCustomers",
+                    new
+                    {
+                        //fields = customersResourceParameters.Fields,
+                        //orderBy = customersResourceParameters.OrderBy,
+                        searchQuery = customersResourceParameters.SearchQuery,
+                        city = customersResourceParameters.City,
+                        pageNumber = customersResourceParameters.PageNumber,
+                        pageSize = customersResourceParameters.PageSize
+                    });
+            }
         }
 
         [HttpGet("{id}", Name= "GetCustomer")]

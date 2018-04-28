@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EuroTrim.api.Entities;
+using EuroTrim.api.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace EuroTrim.api.Services
@@ -66,9 +67,37 @@ namespace EuroTrim.api.Services
             throw new Exception();
         }
         
-        public IEnumerable<Customer> GetCustomers()
+        public PagedList<Customer> GetCustomers(CustomersResourceParameters customersResourceParameters)
         {
-            return _context.Customers.OrderBy(c => c.Name).ToList();
+            var collectionBeforePaging = _context.Customers
+                .OrderBy(c => c.Name).AsQueryable();
+
+            if(!string.IsNullOrEmpty(customersResourceParameters.City))
+            {
+                var cityForWhereClause = customersResourceParameters.City
+                    .Trim().ToLowerInvariant();
+
+                collectionBeforePaging = collectionBeforePaging
+                    .Where(a => a.City != null && a.City.ToLowerInvariant() == cityForWhereClause);
+            }
+
+            if(!string.IsNullOrEmpty(customersResourceParameters.SearchQuery))
+            {
+                var searchorWhereClause = customersResourceParameters.SearchQuery
+                   .Trim().ToLowerInvariant();
+
+                collectionBeforePaging = collectionBeforePaging
+                    .Where(a => a.Name.ToLowerInvariant().Contains(searchorWhereClause)
+                    || a.PostCode.ToLowerInvariant().Contains(searchorWhereClause)
+                    || a.Address1 != null && a.Address1.ToLowerInvariant().Contains(searchorWhereClause)
+                    || a.Address2 != null && a.Address2.ToLowerInvariant().Contains(searchorWhereClause)
+                    );
+            }
+
+            return PagedList<Customer>.Create(collectionBeforePaging,
+                customersResourceParameters.PageNumber,
+                customersResourceParameters.PageSize);
+ 
         }
 
         public IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds)

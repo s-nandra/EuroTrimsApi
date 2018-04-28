@@ -1,4 +1,5 @@
 ﻿using EuroTrim.api.Entities;
+using EuroTrim.api.Helpers;
 using System;
 using System.Collections.Generic;
  
@@ -12,7 +13,7 @@ namespace EuroTrim.api.Services
 
         Customer GetCustomer(Guid id);
         //Customer GetCustomer(Guid customerId, bool includeProduct);
-        IEnumerable<Customer> GetCustomers();
+        PagedList<Customer> GetCustomers(CustomersResourceParameters customersResourceParameters);
 
         IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds);
 
