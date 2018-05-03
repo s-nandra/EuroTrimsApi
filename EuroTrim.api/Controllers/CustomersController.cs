@@ -20,13 +20,20 @@ namespace EuroTrim.api.Controllers
         private IEuroTrimRepository _euroTrimRepository;
         private ILogger<CustomersController> _logger;
         private IUrlHelper _urlHelper;
+        private IPropertyMappingService _propertyMappingService;
+        //private ITypeHelperService _typeHelperService;
 
         public CustomersController(IEuroTrimRepository euroTrimRepository,
-            ILogger<CustomersController> logger, IUrlHelper urlHelper)
+            ILogger<CustomersController> logger, IUrlHelper urlHelper
+            , IPropertyMappingService propertyMappingService
+              //ITypeHelperService typeHelperService
+            )
         {
             _logger = logger;
             _euroTrimRepository = euroTrimRepository;
             _urlHelper = urlHelper;
+            _propertyMappingService = propertyMappingService;
+            //_typeHelperService = typeHelperService;
         }
 
         [HttpGet(Name ="GetCustomers")]
@@ -34,6 +41,18 @@ namespace EuroTrim.api.Controllers
             CustomersResourceParameters customersResourceParameters)
         {
           
+            if (!_propertyMappingService.ValidMappingExistsFor<CustomerDto, Customer>
+              (customersResourceParameters.OrderBy))
+            {
+                return BadRequest();
+            }
+
+            //if (!_typeHelperService.TypeHasProperties<CustomerDto>
+            //    (customersResourceParameters.Fields))
+            //{
+            //    return BadRequest();
+            //}
+
             var customerEntities = _euroTrimRepository.GetCustomers(customersResourceParameters);
 
             var previousPageLink = customerEntities.HasNext ?
@@ -71,7 +90,7 @@ namespace EuroTrim.api.Controllers
                       new
                       {
                           //fields = customersResourceParameters.Fields,
-                          //orderBy = customersResourceParameters.OrderBy,
+                          orderBy = customersResourceParameters.OrderBy,
                           searchQuery = customersResourceParameters.SearchQuery,
                           city = customersResourceParameters.City,
                           pageNumber = customersResourceParameters.PageNumber - 1,
@@ -82,7 +101,7 @@ namespace EuroTrim.api.Controllers
                       new
                       {
                           //fields = authorsResourcustomersResourceParametersceParameters.Fields,
-                          //orderBy = customersResourceParameters.OrderBy,
+                          orderBy = customersResourceParameters.OrderBy,
                           searchQuery = customersResourceParameters.SearchQuery,
                           city = customersResourceParameters.City,
                           pageNumber = customersResourceParameters.PageNumber + 1,
@@ -94,7 +113,7 @@ namespace EuroTrim.api.Controllers
                     new
                     {
                         //fields = customersResourceParameters.Fields,
-                        //orderBy = customersResourceParameters.OrderBy,
+                        orderBy = customersResourceParameters.OrderBy,
                         searchQuery = customersResourceParameters.SearchQuery,
                         city = customersResourceParameters.City,
                         pageNumber = customersResourceParameters.PageNumber,

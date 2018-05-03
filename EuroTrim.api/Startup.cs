@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+ 
 
 namespace EuroTrim.api
 {
@@ -68,9 +69,10 @@ namespace EuroTrim.api
                 return new UrlHelper(actionContext);
             });
 
-            //services.AddTransient<IPropertyMappingService, PropertyMappingService>();
 
-           // services.AddTransient<ITypeHelperService, TypeHelperService>();
+            services.AddTransient<IPropertyMappingService, IPropertyMappingService>();
+
+            // services.AddTransient<ITypeHelperService, TypeHelperService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

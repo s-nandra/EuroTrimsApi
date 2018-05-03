@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EuroTrim.api.Entities;
 using EuroTrim.api.Helpers;
+using EuroTrim.api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EuroTrim.api.Services
@@ -11,10 +12,13 @@ namespace EuroTrim.api.Services
     public class EuroTrimRepository : IEuroTrimRepository
     {
         private EuroTrimContext _context;
+        private IPropertyMappingService _propertyMappingService;
 
-        public EuroTrimRepository(EuroTrimContext context)
+        public EuroTrimRepository(EuroTrimContext context,
+            IPropertyMappingService propertyMappingService)
         {
             _context= context;
+            _propertyMappingService = propertyMappingService;
         }
 
         public bool CustomerExists(Guid customerId)
@@ -69,10 +73,14 @@ namespace EuroTrim.api.Services
         
         public PagedList<Customer> GetCustomers(CustomersResourceParameters customersResourceParameters)
         {
-            var collectionBeforePaging = _context.Customers
-                .OrderBy(c => c.Name).AsQueryable();
+            //var collectionBeforePaging = _context.Customers
+            //    .OrderBy(c => c.Name).AsQueryable();
 
-            if(!string.IsNullOrEmpty(customersResourceParameters.City))
+            var collectionBeforePaging =
+                _context.Customers.ApplySort(customersResourceParameters.OrderBy,
+                _propertyMappingService.GetPropertyMapping<CustomerDto, Customer>());
+
+            if (!string.IsNullOrEmpty(customersResourceParameters.City))
             {
                 var cityForWhereClause = customersResourceParameters.City
                     .Trim().ToLowerInvariant();

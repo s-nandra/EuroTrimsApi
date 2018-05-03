@@ -28,5 +28,7 @@ namespace EuroTrim.api.Helpers
         public string City { get; set; }
 
         public string SearchQuery { get; set; }
+
+        public string OrderBy { get; set; } = "Name";
     }
 }
