@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EuroTrim.api.Controllers
 {
-    [Route("api/authorcollections")]
+    [Route("api/customercollections")]
     public class CustomerCollectionsController : Controller
     {
         private IEuroTrimRepository _euroTrimRepository;
@@ -20,7 +20,7 @@ namespace EuroTrim.api.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateAuthorCollection(
+        public IActionResult CreateCustomerCollection(
            [FromBody] IEnumerable<CustomerForCreationDto> customerCollection)
         {
             if (customerCollection == null)
@@ -37,7 +37,7 @@ namespace EuroTrim.api.Controllers
 
             if (!_euroTrimRepository.Save())
             {
-                throw new Exception("Creating an author collection failed on save.");
+                throw new Exception("Creating an customer collection failed on save.");
             }
 
 

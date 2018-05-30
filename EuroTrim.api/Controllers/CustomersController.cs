@@ -21,24 +21,25 @@ namespace EuroTrim.api.Controllers
         private ILogger<CustomersController> _logger;
         private IUrlHelper _urlHelper;
         private IPropertyMappingService _propertyMappingService;
-        //private ITypeHelperService _typeHelperService;
+        private ITypeHelperService _typeHelperService;
 
         public CustomersController(IEuroTrimRepository euroTrimRepository,
             ILogger<CustomersController> logger, IUrlHelper urlHelper
-            , IPropertyMappingService propertyMappingService
-              //ITypeHelperService typeHelperService
+            , IPropertyMappingService propertyMappingService,
+              ITypeHelperService typeHelperService
             )
         {
             _logger = logger;
             _euroTrimRepository = euroTrimRepository;
             _urlHelper = urlHelper;
             _propertyMappingService = propertyMappingService;
-            //_typeHelperService = typeHelperService;
+            _typeHelperService = typeHelperService;
         }
 
         [HttpGet(Name ="GetCustomers")]
         public IActionResult GetCustomers(
-            CustomersResourceParameters customersResourceParameters)
+            CustomersResourceParameters customersResourceParameters,
+            [FromHeader(Name = "Accept")] string mediaType)
         {
           
             if (!_propertyMappingService.ValidMappingExistsFor<CustomerDto, Customer>
@@ -47,41 +48,85 @@ namespace EuroTrim.api.Controllers
                 return BadRequest();
             }
 
-            //if (!_typeHelperService.TypeHasProperties<CustomerDto>
-            //    (customersResourceParameters.Fields))
-            //{
-            //    return BadRequest();
-            //}
-
-            var customerEntities = _euroTrimRepository.GetCustomers(customersResourceParameters);
-
-            var previousPageLink = customerEntities.HasNext ?
-                CreateCustomersResourceUri(customersResourceParameters, 
-                ResourceUriType.PreviousPage) : null;
-
-            var nextPageLink = customerEntities.HasNext ?
-            CreateCustomersResourceUri(customersResourceParameters,
-            ResourceUriType.NextPage) : null;
-
-            var paginationMetadata = new
+            if (!_typeHelperService.TypeHasProperties<CustomerDto>
+                (customersResourceParameters.Fields))
             {
-                totalCount = customerEntities.TotalCount,
-                pageSize = customerEntities.PageSize,
-                currentPage = customerEntities.CurrentPage,
-                totalPages = customerEntities.TotalPages,
-                previousPageLink = previousPageLink,
-                nextPageLink = nextPageLink
-            };
+                return BadRequest();
+            }
 
-            Response.Headers.Add("X-Pagination",
-                Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
+            var customersFromRepo = _euroTrimRepository.GetCustomers(customersResourceParameters);
 
-            var results = Mapper.Map<IEnumerable<CustomerDto>>(customerEntities);
-            return Ok(results); 
+            var customers = Mapper.Map<IEnumerable<CustomerDto>>(customersFromRepo);
+
+            if (mediaType == "application/vnd.marvin.hateoas+json")
+            {
+                var paginationMetadata = new
+                {
+                    totalCount = customersFromRepo.TotalCount,
+                    pageSize = customersFromRepo.PageSize,
+                    currentPage = customersFromRepo.CurrentPage,
+                    totalPages = customersFromRepo.TotalPages
+                };
+
+                Response.Headers.Add("X-Pagination",
+                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
+
+                var links = CreateLinksForCustomers(customersResourceParameters,
+                    customersFromRepo.HasNext, customersFromRepo.HasPrevious);
+
+                var shapedCustomers = customers.ShapeData(customersResourceParameters.Fields);
+
+                var shapedCustomersWithLinks = shapedCustomers.Select(customer =>
+                {
+                    var customerAsDictionary = customer as IDictionary<string, object>;
+                    var customerLinks = CreateLinksForCustomer(
+                        (Guid)customerAsDictionary["Id"], customersResourceParameters.Fields);
+
+                    customerAsDictionary.Add("links", customerLinks);
+
+                    return customerAsDictionary;
+                });
+
+                var linkedCollectionResource = new
+                {
+                    value = shapedCustomersWithLinks,
+                    links = links
+                };
+
+                return Ok(linkedCollectionResource);
+
+            }
+            else
+            {
+                var previousPageLink = customersFromRepo.HasPrevious ?
+                    CreateCustomersResourceUri(customersResourceParameters,
+                    ResourceUriType.PreviousPage) : null;
+
+                var nextPageLink = customersFromRepo.HasNext ?
+                    CreateCustomersResourceUri(customersResourceParameters,
+                    ResourceUriType.NextPage) : null;
+
+                var paginationMetadata = new
+                {
+                    previousPageLink = previousPageLink,
+                    nextPageLink = nextPageLink,
+                    totalCount = customersFromRepo.TotalCount,
+                    pageSize = customersFromRepo.PageSize,
+                    currentPage = customersFromRepo.CurrentPage,
+                    totalPages = customersFromRepo.TotalPages
+                };
+
+                Response.Headers.Add("X-Pagination",
+                    Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
+
+                return Ok(customers.ShapeData(customersResourceParameters.Fields));
+            }
+
+ 
         }
 
         private string CreateCustomersResourceUri(CustomersResourceParameters customersResourceParameters,
-            ResourceUriType type)
+    ResourceUriType type)
         {
             switch (type)
             {
@@ -89,7 +134,7 @@ namespace EuroTrim.api.Controllers
                     return _urlHelper.Link("GetCustomers",
                       new
                       {
-                          //fields = customersResourceParameters.Fields,
+                          fields = customersResourceParameters.Fields,
                           orderBy = customersResourceParameters.OrderBy,
                           searchQuery = customersResourceParameters.SearchQuery,
                           city = customersResourceParameters.City,
@@ -100,7 +145,7 @@ namespace EuroTrim.api.Controllers
                     return _urlHelper.Link("GetCustomers",
                       new
                       {
-                          //fields = authorsResourcustomersResourceParametersceParameters.Fields,
+                          fields = customersResourceParameters.Fields,
                           orderBy = customersResourceParameters.OrderBy,
                           searchQuery = customersResourceParameters.SearchQuery,
                           city = customersResourceParameters.City,
@@ -112,7 +157,7 @@ namespace EuroTrim.api.Controllers
                     return _urlHelper.Link("GetCustomers",
                     new
                     {
-                        //fields = customersResourceParameters.Fields,
+                        fields = customersResourceParameters.Fields,
                         orderBy = customersResourceParameters.OrderBy,
                         searchQuery = customersResourceParameters.SearchQuery,
                         city = customersResourceParameters.City,
@@ -122,9 +167,91 @@ namespace EuroTrim.api.Controllers
             }
         }
 
-        [HttpGet("{id}", Name= "GetCustomer")]
-        public IActionResult GetCustomer(Guid id)
+        private object CreateLinksForCustomer(Guid id, string fields)
         {
+            var links = new List<LinkDto>();
+
+            if (string.IsNullOrWhiteSpace(fields))
+            {
+                links.Add(
+                  new LinkDto(_urlHelper.Link("GetCustomer", new { id = id }),
+                  "self",
+                  "GET"));
+            }
+            else
+            {
+                links.Add(
+                  new LinkDto(_urlHelper.Link("GetCustomer", new { id = id, fields = fields }),
+                  "self",
+                  "GET"));
+            }
+
+            links.Add(
+              new LinkDto(_urlHelper.Link("DeleteCustomer", new { id = id }),
+              "delete_customer",
+              "DELETE"));
+
+            links.Add(
+              new LinkDto(_urlHelper.Link("CreateCustomer", new { customerId = id }),
+              "create_customer",
+              "POST"));
+
+            //links.Add(
+            //  new LinkDto(_urlHelper.Link("CreateProductForCustomer", new { CustomerId = id }),
+            //  "create_product_for_customer",
+            //  "POST"));
+
+            //links.Add(
+            //   new LinkDto(_urlHelper.Link("GetproductsForCustomer", new { customerId = id }),
+            //   "products",
+            //   "GET"));
+
+            return links;
+        }
+
+        private IEnumerable<LinkDto> CreateLinksForCustomers(
+            CustomersResourceParameters customersResourceParameters,
+            bool hasNext, bool hasPrevious)
+        {
+            var links = new List<LinkDto>();
+
+            // self 
+            links.Add(
+               new LinkDto(CreateCustomersResourceUri(customersResourceParameters,
+               ResourceUriType.Current)
+               , "self", "GET"));
+
+            if (hasNext)
+            {
+                links.Add(
+                  new LinkDto(CreateCustomersResourceUri(customersResourceParameters,
+                  ResourceUriType.NextPage),
+                  "nextPage", "GET"));
+            }
+
+            if (hasPrevious)
+            {
+                links.Add(
+                    new LinkDto(CreateCustomersResourceUri(customersResourceParameters,
+                    ResourceUriType.PreviousPage),
+                    "previousPage", "GET"));
+            }
+
+            return links;
+        }
+
+
+
+        [HttpGet("{id}", Name= "GetCustomer")]
+        public IActionResult GetCustomer(Guid id, [FromQuery] string fields)
+        {
+
+            if (!_typeHelperService.TypeHasProperties<CustomerDto>
+                 (fields))
+            {
+                return BadRequest();
+            }
+
             var customerRepo = _euroTrimRepository.GetCustomer(id);
 
             if (customerRepo == null)
@@ -133,10 +260,20 @@ namespace EuroTrim.api.Controllers
             }
 
             var customer = Mapper.Map<CustomerDto>(customerRepo);
-            return Ok(customer);
+
+            var links = CreateLinksForCustomer(id, fields);
+
+            var linkedResourceToReturn = customer.ShapeData(fields)
+                as IDictionary<string, object>;
+
+            linkedResourceToReturn.Add("links", links);
+
+            return Ok(linkedResourceToReturn);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateCustomer")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            new[] { "application/vnd.marvin.customer.full+json" })]
         public IActionResult CreateCustomer([FromBody] CustomerForCreationDto customer)
         {
             if(customer == null)
@@ -144,15 +281,14 @@ namespace EuroTrim.api.Controllers
                 return BadRequest();
             }
 
-            if (!ModelState.IsValid)
-            {
-                //return 442
-                return new UnprocessableEntityObjectResult(ModelState);
-            }
-
             var customerEntity = Mapper.Map<Customer>(customer);
-
             _euroTrimRepository.AddCustomer(customerEntity);
+
+            //if (!ModelState.IsValid)
+            //{
+            //    //return 442
+            //    return new UnprocessableEntityObjectResult(ModelState);
+            //}
 
             if (!_euroTrimRepository.Save())
             {
@@ -162,8 +298,16 @@ namespace EuroTrim.api.Controllers
 
             var customerToReturn = Mapper.Map<CustomerDto>(customerEntity);
 
-            return CreatedAtRoute("GetCustomer", new { id = customerToReturn.Id },
-                customerToReturn);
+            var links = CreateLinksForCustomer(customerToReturn.Id, null);
+
+            var linkedResourceToReturn = customerToReturn.ShapeData(null)
+                as IDictionary<string, object>;
+
+            linkedResourceToReturn.Add("links", links);
+
+            return CreatedAtRoute("GetCustomer",
+                new { id = linkedResourceToReturn["Id"] },
+                linkedResourceToReturn);
 
         }
 
@@ -178,7 +322,7 @@ namespace EuroTrim.api.Controllers
             return NotFound();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteCustomer")]
         public IActionResult DeleteCustomer(Guid id)
         {
             var customerFromRepo = _euroTrimRepository.GetCustomer(id);
@@ -200,29 +344,13 @@ namespace EuroTrim.api.Controllers
         }
 
 
-
-
-
-        /*
-        [HttpGet("{id}")]
-        public IActionResult GetCustomer(Guid id, bool includeProducts =false)
+        [HttpOptions]
+        public IActionResult GetCustomersOptions()
         {
-            var customer = _euroTrimRepository.GetCustomer(id, includeProducts);
-            if(customer == null)
-            {
-                return NotFound();
-            }
+            Response.Headers.Add("Allow", "GET,OPTIONS,POST");
+            return Ok();
+        }
 
-            if(includeProducts)
-            {
-                var customerResult = Mapper.Map<CustomerDto>(customer);
-                return Ok(customerResult);
-            }
-
-
-            var customersWithoutProductsResult = Mapper.Map<CustomersWithoutProductsDto>(customer);
-            return Ok(customersWithoutProductsResult);
-
-        }*/
+         
     }
 }

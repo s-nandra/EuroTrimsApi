@@ -11,7 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
- 
+using Newtonsoft.Json.Serialization;
+using System.Linq;
+using AspNetCoreRateLimit;
 
 namespace EuroTrim.api
 {
@@ -35,20 +37,39 @@ namespace EuroTrim.api
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
 
+                var xmlDataContractSerializerInputFormatter =
+                new XmlDataContractSerializerInputFormatter();
+                xmlDataContractSerializerInputFormatter.SupportedMediaTypes
+                    .Add("application/vnd.marvin.customerwithdateofdeath.full+xml");
+                setupAction.InputFormatters.Add(xmlDataContractSerializerInputFormatter);
 
+                var jsonInputFormatter = setupAction.InputFormatters
+                    .OfType<JsonInputFormatter>().FirstOrDefault();
+
+                if (jsonInputFormatter != null)
+                {
+                    jsonInputFormatter.SupportedMediaTypes
+                    .Add("application/vnd.marvin.customer.full+json");
+                    //jsonInputFormatter.SupportedMediaTypes
+                    //.Add("application/vnd.marvin.customerwithdateofdeath.full+json");
+                }
+
+                var jsonOutputFormatter = setupAction.OutputFormatters
+                    .OfType<JsonOutputFormatter>().FirstOrDefault();
+
+                if (jsonOutputFormatter != null)
+                {
+                    jsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.hateoas+json");
+                }
+
+            })
+            .AddJsonOptions(options =>
+            {
+                options.SerializerSettings.ContractResolver =
+                new CamelCasePropertyNamesContractResolver();
             });
 
-            //.AddJsonOptions(o =>
-            //{
-            //    if (o.SerializerSettings.ContractResolver != null)
-            //    {
-            //        var castedResolver = o.SerializerSettings.ContractResolver
-            //            as DefaultContractResolver;
-            //            castedResolver.NamingStrategy = null;
-
-
-            //    }
-            //});
+ 
 #if DEBUG
             services.AddTransient<IMailService, LocalMailService>();
 #else
@@ -70,18 +91,54 @@ namespace EuroTrim.api
             });
 
 
-            services.AddTransient<IPropertyMappingService, IPropertyMappingService>();
+            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
 
-            // services.AddTransient<ITypeHelperService, TypeHelperService>();
+            services.AddTransient<ITypeHelperService, TypeHelperService>();
+
+            services.AddHttpCacheHeaders(
+              (expirationModelOptions)
+              =>
+              {
+                  expirationModelOptions.MaxAge = 600;
+              },
+              (validationModelOptions)
+              =>
+              {
+                  validationModelOptions.AddMustRevalidate = true;
+              });
+
+            services.AddMemoryCache();
+
+            services.Configure<IpRateLimitOptions>((options) =>
+            {
+                options.GeneralRules = new System.Collections.Generic.List<RateLimitRule>()
+                {
+                    new RateLimitRule()
+                    {
+                        Endpoint = "*",
+                        Limit = 1000,
+                        Period = "5m"
+                    },
+                    new RateLimitRule()
+                    {
+                        Endpoint = "*",
+                        Limit = 200,
+                        Period = "10s"
+                    }
+                };
+            });
+
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
             EuroTrimContext euroTrimContext)
         {
-            loggerFactory.AddConsole();
+            //loggerFactory.AddConsole();
 
-            loggerFactory.AddDebug(LogLevel.Information);
+            //loggerFactory.AddDebug(LogLevel.Information);
 
             // loggerFactory.AddProvider(new NLog.Extensions.Logging.NLogLoggerProvider())
             //loggerFactory.AddNLog();
@@ -113,9 +170,9 @@ namespace EuroTrim.api
                 );
             }
 
-            euroTrimContext.EnsureSeedDataForContext();
+            //euroTrimContext.EnsureSeedDataForContext();
 
-            app.UseStatusCodePages();
+            //app.UseStatusCodePages();
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
@@ -134,12 +191,13 @@ namespace EuroTrim.api
 
             });
 
+            euroTrimContext.EnsureSeedDataForContext();
+
+            app.UseIpRateLimiting();
+            app.UseHttpCacheHeaders();
+
             app.UseMvc();
 
-            //app.Run(async (context) =>
-            //{
-            //    await context.Response.WriteAsync("Hello World!");
-            //});
         }
     }
 }

@@ -15,9 +15,13 @@ namespace EuroTrim.api.Services
                { "Id", new PropertyMappingValue(new List<string>() { "Id" } ) },
                { "City", new PropertyMappingValue(new List<string>() { "City" } )},
                { "ContactNumber", new PropertyMappingValue(new List<string>() { "ContactNumber" } , true) },
+               { "Decription", new PropertyMappingValue(new List<string>() { "Decription" } )},
+               { "Address1", new PropertyMappingValue(new List<string>() { "Address1" } )},
+               { "Address2", new PropertyMappingValue(new List<string>() { "Address2" } )},
+               { "PostCode", new PropertyMappingValue(new List<string>() { "PostCode" } )},
                { "Name", new PropertyMappingValue(new List<string>() { "Name" } )}
                //{ "Name", new PropertyMappingValue(new List<string>() { "FirstName", "LastName" }) }
-           };
+    };
 
 
         private IList<IPropertyMapping> propertyMappings = new List<IPropertyMapping>();

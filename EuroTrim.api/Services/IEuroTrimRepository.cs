@@ -19,9 +19,6 @@ namespace EuroTrim.api.Services
 
         IEnumerable<Order> GetOrdersForCustomer(Guid customerId);
 
-
-
-
         Order GetOrderForCustomer(Guid customerId, Guid productId);
 
         Order GetOrderForCustomerByOrderId(Guid customerId, Guid orderId);
@@ -32,9 +29,6 @@ namespace EuroTrim.api.Services
 
 
         IEnumerable<Product> GetProductsForCustomer(Guid customerId);
-
-
-
         IEnumerable<Product> GetProducts();
 
         Product GetProduct(Guid productId);

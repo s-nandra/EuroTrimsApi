@@ -11,8 +11,8 @@ namespace EuroTrim.api.Helpers
     public static class IEnumerableExtensions
     {
         public static IEnumerable<ExpandoObject> ShapeData<TSource>(
-            this IEnumerable<TSource> source,
-            string fields)
+                this IEnumerable<TSource> source,
+                string fields)
         {
             if (source == null)
             {
