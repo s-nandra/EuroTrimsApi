@@ -13,6 +13,10 @@ namespace EuroTrim.api.Entities
 
         public DbSet<Order> Orders { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Update> Updates { get; set; }
+
         //public DbSet<Category> Categories { get; set; }
 
         public EuroTrimContext(DbContextOptions<EuroTrimContext> options)

@@ -1,0 +1,47 @@
+﻿to addd a new table
+1. create entities
+2. create model dto
+3. update startup.cs
+4. update dbset - context
+
+run pm migration commands
+
+add-migration
+users
+
+update-database
+
+-------------------------------------
+
+USE [EuroTrimDB]
+GO
+
+INSERT INTO [dbo].[Users]
+           ([Name]
+           ,[Password]
+           ,[Username])
+     VALUES
+           ('Satnam Nandra' 
+           ,'Eur0Trims'
+           ,'SNanadra')
+GO
+
+USE [EuroTrimDB]
+GO
+
+INSERT INTO [dbo].[Users]
+           ([Name]
+           ,[Password]
+           ,[Username])
+     VALUES
+           ('Indi Sogi' 
+           ,'Password1'
+           ,'IS0gi')
+GO
+
+
+-------------------------------------
+
+For React api - 
+https://www.9lessons.info/2014/12/create-restful-services-using-slim-php.html
+https://www.youtube.com/watch?v=Y4NHqDp88lA

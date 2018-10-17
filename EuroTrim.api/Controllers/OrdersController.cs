@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using EuroTrim.api.Entities;
 using EuroTrim.api.Models;
 using EuroTrim.api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EuroTrim.api.Controllers
 {
+    [Authorize]
     [Route("api/customers/{customerId}/orders")]
-    public class OrdersController : Controller
+    public class OrdersController : Controller 
     {
 
         private IEuroTrimRepository _euroTrimRepository;
@@ -20,6 +24,8 @@ namespace EuroTrim.api.Controllers
         {
             _euroTrimRepository = euroTrimRepository;
         }
+
+        
 
         //[HttpGet("api/customers/{customerId}/orders")]
         [HttpGet()]
@@ -30,9 +36,13 @@ namespace EuroTrim.api.Controllers
                 return NotFound();
             }
 
-            var ordersForCustomerFromRepo = _euroTrimRepository.GetOrdersForCustomer(customerId);
+            var ordersForCustomerFromRepo = _euroTrimRepository.GetOrderByCustomerId(customerId);
+
 
             var ordersForCustomer = Mapper.Map<IEnumerable<OrderDto>>(ordersForCustomerFromRepo);
+           
+
+
 
             return Ok(ordersForCustomer);
         }
@@ -45,13 +55,18 @@ namespace EuroTrim.api.Controllers
                 return NotFound();
             }
 
-            var ordersForCustomerFromRepo = _euroTrimRepository.GetOrderForCustomer(customerId, productId);
+            // var ordersForCustomerFromRepo = _euroTrimRepository.GetOrderForCustomer(customerId, productId);
+
+            var ordersForCustomerFromRepo = _euroTrimRepository.GetOrderByCustomerId(customerId);
+
+
 
             if (ordersForCustomerFromRepo == null)
             {
                 return NotFound();
             }
             var ordersForCustomer = Mapper.Map<OrderDto>(ordersForCustomerFromRepo);
+
 
             return Ok(ordersForCustomer);
         }

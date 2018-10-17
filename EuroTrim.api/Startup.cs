@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
 using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace EuroTrim.api
 {
@@ -31,6 +34,21 @@ namespace EuroTrim.api
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+
+            //services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder =>
+                    {
+                        builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                    });
+            });
+
             services.AddMvc(setupAction =>
             {
                 setupAction.ReturnHttpNotAcceptable = true;
@@ -69,7 +87,26 @@ namespace EuroTrim.api
                 new CamelCasePropertyNamesContractResolver();
             });
 
- 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                var keyByteArray = Encoding.ASCII.GetBytes("db3OIsj+BXE9NZDy0t8W3TcNekrF+2d/1sFnWG4HnV8TZY30iTOdtVWJG8abWvB1GlOgJuQZdcF2Luqm/hccMw==");
+                var signingKey = new SymmetricSecurityKey(keyByteArray);
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    //ValidIssuer = "http://localhost:53101",
+                    //ValidAudience = "http://localhost:5310",
+                    //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("db3OIsj+BXE9NZDy0t8W3TcNekrF+2d/1sFnWG4HnV8TZY30iTOdtVWJG8abWvB1GlOgJuQZdcF2Luqm/hccMw=="))
+                    IssuerSigningKey=signingKey
+                };
+            });
+
+
+       
+
 #if DEBUG
             services.AddTransient<IMailService, LocalMailService>();
 #else
@@ -170,6 +207,11 @@ namespace EuroTrim.api
                 );
             }
 
+            app.UseAuthentication();
+
+            app.UseCors(builder =>
+                builder.WithOrigins("http://eurotrimapi.azurewebsites.net").AllowAnyHeader());
+
             //euroTrimContext.EnsureSeedDataForContext();
 
             //app.UseStatusCodePages();
@@ -187,7 +229,9 @@ namespace EuroTrim.api
                 cfg.CreateMap<Entities.Customer, Models.CustomersWithoutProductsDto>();
  
                 cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
-                
+                cfg.CreateMap<Entities.User, Models.UserDto>();
+                cfg.CreateMap<Entities.Update, Models.UpdateDto>();
+
 
             });
 
@@ -196,6 +240,7 @@ namespace EuroTrim.api
             app.UseIpRateLimiting();
             app.UseHttpCacheHeaders();
 
+            app.UseCors("AllowAll");
             app.UseMvc();
 
         }

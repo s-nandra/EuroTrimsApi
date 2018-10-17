@@ -3,6 +3,7 @@ using EuroTrim.api.Entities;
 using EuroTrim.api.Helpers;
 using EuroTrim.api.Models;
 using EuroTrim.api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace EuroTrim.api.Controllers
 {
+    [Authorize]
     [Route("api/customers")]
     public class CustomersController : Controller
     {

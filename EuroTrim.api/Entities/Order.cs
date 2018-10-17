@@ -23,5 +23,6 @@ namespace EuroTrim.api.Entities
         public Product Product { get; set; }
 
         public Guid ProductId { get; set; }
+
     }
 }

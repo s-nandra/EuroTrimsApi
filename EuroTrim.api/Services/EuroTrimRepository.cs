@@ -136,9 +136,57 @@ namespace EuroTrim.api.Services
 
         public Order GetOrderForCustomer(Guid customerId, Guid productId)
         {
+//            var query1 = _context.Orders   // your starting point
+//.Join(_context.Products, // the source table of the inner join
+//o => o.ProductId,        // Select the primary key (the first part of the "on" clause in an sql "join" statement)
+//p => p.Id,   // Select the foreign key (the second part of the "on" clause)
+//(o, p) => new { O = o, P = p }) // selection
+//.Where(postAndMeta => postAndMeta.O.ProductId == productId);
+
+
+
+            var query = (from orders in _context.Orders
+                         join products in _context.Products on orders.ProductId equals products.Id
+                         select orders
+                         ).FirstOrDefault();
+
+            return query;
+            /*
             return _context.Orders
                 .Where(o => o.CustomerId == customerId
                     && o.ProductId==productId).FirstOrDefault();
+            */
+        }
+
+        //public Product GetProductsByOrder(Order _order)
+        //{
+
+        //    var query = (from orders in _context.Orders
+        //                 join products in _context.Products on orders.ProductId equals products.Id
+        //                 select products
+        //     ).FirstOrDefault();
+
+        //    return query;
+
+        //}
+
+        public IEnumerable<OrderDto> GetOrderByCustomerId(Guid customerId)
+        {
+
+            var query = (from orders in _context.Orders
+                         join products in _context.Products on orders.ProductId equals products.Id
+                         where orders.CustomerId == customerId
+                         select new OrderDto {
+                            Id=orders.Id,
+                            DateOrderCreated=orders.DateOrderCreated,
+                            CustomerId=orders.CustomerId,
+                            ProductId =orders.ProductId,
+                            Products=products
+                         }  
+             );
+
+            return query.ToList();
+
         }
 
         public Order GetOrderForCustomerByOrderId(Guid customerId, Guid orderId)
@@ -211,6 +259,16 @@ namespace EuroTrim.api.Services
         {
             return _context.Products.OrderBy(c => c.ProdName).ToList();
 
+        }
+
+        public IEnumerable<User> GetUsers()
+        {
+            return _context.Users.OrderBy(c => c.Name).ToList();
+        }
+
+        public User GetUser(string username, string password)
+        {
+            return _context.Users.Where(c => c.Username == username && c.Password==password).FirstOrDefault();
         }
     }
 }

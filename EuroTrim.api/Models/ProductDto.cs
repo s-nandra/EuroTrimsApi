@@ -30,6 +30,7 @@ namespace EuroTrim.api.Models
         public decimal Discount2 { get; set; }
         public decimal Discount3 { get; set; }
         public decimal Discount4 { get; set; }
+        public int Quantity { get; set; }
 
 
 

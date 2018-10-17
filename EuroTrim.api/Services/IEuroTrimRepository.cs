@@ -1,5 +1,6 @@
 ﻿using EuroTrim.api.Entities;
 using EuroTrim.api.Helpers;
+using EuroTrim.api.Models;
 using System;
 using System.Collections.Generic;
  
@@ -22,6 +23,9 @@ namespace EuroTrim.api.Services
         Order GetOrderForCustomer(Guid customerId, Guid productId);
 
         Order GetOrderForCustomerByOrderId(Guid customerId, Guid orderId);
+        IEnumerable<User> GetUsers();
+
+        User GetUser(string username, string password);
 
         void AddCustomer(Customer customerEntity);
 
@@ -47,6 +51,6 @@ namespace EuroTrim.api.Services
         void UpdateProduct(Product productToUpdate);
 
         bool Save();
-        
+        IEnumerable<OrderDto> GetOrderByCustomerId(Guid customerId);
     }
 }
