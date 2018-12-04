@@ -35,5 +35,7 @@ namespace EuroTrim.api.Entities
         public decimal Discount3 { get; set; }
         public decimal Discount4 { get; set; }
 
+
+
     }
 }

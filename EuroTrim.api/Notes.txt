@@ -4,11 +4,9 @@
 3. update startup.cs
 4. update dbset - context
 
-run pm migration commands
+//run pm migration commands
 
-add-migration
-users
-
+add-migration categoryBands
 update-database
 
 -------------------------------------
@@ -42,6 +40,45 @@ GO
 
 -------------------------------------
 
+USE [EuroTrimDB]
+GO
+
+INSERT INTO [dbo].[DiscountBands]
+           ([DiscountName]
+           ,[DiscountValue]
+           ,[IsActive])
+     VALUES
+           ('Band A 10%', 10,1)
+GO
+
+INSERT INTO [dbo].[DiscountBands]
+           ([DiscountName]
+           ,[DiscountValue]
+           ,[IsActive])
+     VALUES
+           ('Band B 15%', 15,1)
+GO
+
+INSERT INTO [dbo].[DiscountBands]
+           ([DiscountName]
+           ,[DiscountValue]
+           ,[IsActive])
+     VALUES
+           ('Band C 20%', 20,1)
+GO
+
 For React api - 
 https://www.9lessons.info/2014/12/create-restful-services-using-slim-php.html
 https://www.youtube.com/watch?v=Y4NHqDp88lA
+
+import React, { Component } from 'react'
+
+export default class Home extends Component {
+    render() {
+        return (
+            <div>
+                
+            </div>
+        )
+    }
+}

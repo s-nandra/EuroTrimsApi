@@ -15,7 +15,11 @@ namespace EuroTrim.api.Entities
 
         public DbSet<User> Users { get; set; }
 
-        public DbSet<Update> Updates { get; set; }
+        //public DbSet<Update> Updates { get; set; }
+
+        public DbSet<DiscountBand> DiscountBands { get; set; }
+
+        public DbSet<CustomerProductAllocation> CustomerProductAllocations { get; set; }
 
         //public DbSet<Category> Categories { get; set; }
 

@@ -19,10 +19,11 @@ namespace EuroTrim.api.Services
         IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds);
 
         IEnumerable<Order> GetOrdersForCustomer(Guid customerId);
-
+        IEnumerable<DiscountBand> GetDiscountBands();
         Order GetOrderForCustomer(Guid customerId, Guid productId);
 
         Order GetOrderForCustomerByOrderId(Guid customerId, Guid orderId);
+        CustomerProductAllocation GetCustomerProductAllocationByCustomerId(Guid customerId);
         IEnumerable<User> GetUsers();
 
         User GetUser(string username, string password);
@@ -43,6 +44,7 @@ namespace EuroTrim.api.Services
         //void AddProductForCustomer(Guid customerId, Product product);
 
         void AddProduct(Product product);
+        IEnumerable<ProductDto> GetProductsWithBands();
         void DeleteProduct(Product product);
         void DeleteOrder(Order ordersForCustomerFromRepo);
 

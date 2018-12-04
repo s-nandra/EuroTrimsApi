@@ -17,7 +17,7 @@ namespace EuroTrim.api.Services
         public EuroTrimRepository(EuroTrimContext context,
             IPropertyMappingService propertyMappingService)
         {
-            _context= context;
+            _context = context;
             _propertyMappingService = propertyMappingService;
         }
 
@@ -42,7 +42,7 @@ namespace EuroTrim.api.Services
             _context.Customers.Add(customer);
 
             //If any orders attached to customer
-            if(customer.Orders.Any())
+            if (customer.Orders.Any())
             {
                 foreach (var order in customer.Orders)
                 {
@@ -70,7 +70,7 @@ namespace EuroTrim.api.Services
             //        && p.Id==productId).FirstOrDefault();
             throw new Exception();
         }
-        
+
         public PagedList<Customer> GetCustomers(CustomersResourceParameters customersResourceParameters)
         {
             //var collectionBeforePaging = _context.Customers
@@ -89,7 +89,7 @@ namespace EuroTrim.api.Services
                     .Where(a => a.City != null && a.City.ToLowerInvariant() == cityForWhereClause);
             }
 
-            if(!string.IsNullOrEmpty(customersResourceParameters.SearchQuery))
+            if (!string.IsNullOrEmpty(customersResourceParameters.SearchQuery))
             {
                 var searchorWhereClause = customersResourceParameters.SearchQuery
                    .Trim().ToLowerInvariant();
@@ -105,7 +105,7 @@ namespace EuroTrim.api.Services
             return PagedList<Customer>.Create(collectionBeforePaging,
                 customersResourceParameters.PageNumber,
                 customersResourceParameters.PageSize);
- 
+
         }
 
         public IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds)
@@ -134,14 +134,17 @@ namespace EuroTrim.api.Services
                 .Where(o => o.CustomerId == customerId).ToList();
         }
 
+
+
+
         public Order GetOrderForCustomer(Guid customerId, Guid productId)
         {
-//            var query1 = _context.Orders   // your starting point
-//.Join(_context.Products, // the source table of the inner join
-//o => o.ProductId,        // Select the primary key (the first part of the "on" clause in an sql "join" statement)
-//p => p.Id,   // Select the foreign key (the second part of the "on" clause)
-//(o, p) => new { O = o, P = p }) // selection
-//.Where(postAndMeta => postAndMeta.O.ProductId == productId);
+            //            var query1 = _context.Orders   // your starting point
+            //.Join(_context.Products, // the source table of the inner join
+            //o => o.ProductId,        // Select the primary key (the first part of the "on" clause in an sql "join" statement)
+            //p => p.Id,   // Select the foreign key (the second part of the "on" clause)
+            //(o, p) => new { O = o, P = p }) // selection
+            //.Where(postAndMeta => postAndMeta.O.ProductId == productId);
 
 
 
@@ -176,13 +179,14 @@ namespace EuroTrim.api.Services
             var query = (from orders in _context.Orders
                          join products in _context.Products on orders.ProductId equals products.Id
                          where orders.CustomerId == customerId
-                         select new OrderDto {
-                            Id=orders.Id,
-                            DateOrderCreated=orders.DateOrderCreated,
-                            CustomerId=orders.CustomerId,
-                            ProductId =orders.ProductId,
-                            Products=products
-                         }  
+                         select new OrderDto
+                         {
+                             Id = orders.Id,
+                             DateOrderCreated = orders.DateOrderCreated,
+                             CustomerId = orders.CustomerId,
+                             ProductId = orders.ProductId,
+                             Products = products
+                         }
              );
 
             return query.ToList();
@@ -197,6 +201,13 @@ namespace EuroTrim.api.Services
         }
 
 
+       
+
+        public CustomerProductAllocation GetCustomerProductAllocationByCustomerId(Guid customerId)
+        {
+            return _context.CustomerProductAllocations
+                .Where(o => o.CustomerId == customerId).FirstOrDefault();
+        }
 
 
         /*public void AddProductForCustomer(Guid customerId, Product product)
@@ -228,7 +239,7 @@ namespace EuroTrim.api.Services
 
         public void UpdateProduct(Product product)
         {
-            
+
         }
 
         public bool Save()
@@ -236,8 +247,8 @@ namespace EuroTrim.api.Services
             return (_context.SaveChanges() >= 0);
         }
 
-        public void AddOrderForCustomer(Guid customerId,  Order order)
-        { 
+        public void AddOrderForCustomer(Guid customerId, Order order)
+        {
             var customer = GetCustomer(customerId);
 
             if (customer != null)
@@ -247,10 +258,10 @@ namespace EuroTrim.api.Services
                 if (order.Id == Guid.Empty)
                 {
                     order.Id = Guid.NewGuid();
-                    
+
                 }
 
-                customer.Orders.Add(order); 
+                customer.Orders.Add(order);
             }
 
         }
@@ -261,6 +272,69 @@ namespace EuroTrim.api.Services
 
         }
 
+
+        public IEnumerable<ProductDto> GetProductsWithBands()
+        {
+            //var DiscountValueA = _context.DiscountBands.Where(_ => _.DiscountKey == "A");
+            //var DiscountValueB = _context.DiscountBands.Where(_ => _.DiscountKey == "B");
+            //var DiscountValueC = _context.DiscountBands.Where(_ => _.DiscountKey == "C");
+
+            //var list = _context.Products.Select(a => new ProductDto{
+            //    Id = a.Id,
+            //    BandA = a.BuyPrice / DiscountValueA.Select(x=>x.DiscountValue).FirstOrDefault()
+            //}).ToList();
+
+
+
+            var query = from e in _context.Products
+                        select new ProductDto
+                        {
+                            Id = e.Id,
+                            PartNo = e.PartNo,
+                            ProdName = e.ProdName,
+                            Description = e.Description,
+                            Quantity=e.Quantity,
+                            BuyPrice=e.BuyPrice,
+                            Per=e.Per,
+                            DutyPrice=e.DutyPrice,
+                            ListPrice=e.ListPrice,
+                            Colour=e.Colour,
+                            Size=e.Size,
+                            BandA = e.BuyPrice / (decimal)(from v in _context.DiscountBands
+                                                           where v.DiscountKey == "A"
+                                                           select v.DiscountValue).FirstOrDefault(),
+
+
+                            BandB = e.BuyPrice / (decimal)(from v in _context.DiscountBands
+                                                           where v.DiscountKey == "B"
+                                                           select v.DiscountValue).FirstOrDefault(),
+                        };
+
+
+            return query.ToList();
+            //var products = _context.Products.ToList();
+            ////Get Team entity from data store
+
+            //var teamDto = new ProductDto()
+            //{
+            //    Id = products.Select
+
+
+            //};
+
+
+
+
+            //return fgg.ToList();
+        }
+
+        public IEnumerable<DiscountBand> GetDiscountBands()
+        {
+            var dis = _context.DiscountBands.ToList();
+            return dis;
+        }
+
+
         public IEnumerable<User> GetUsers()
         {
             return _context.Users.OrderBy(c => c.Name).ToList();
@@ -268,7 +342,7 @@ namespace EuroTrim.api.Services
 
         public User GetUser(string username, string password)
         {
-            return _context.Users.Where(c => c.Username == username && c.Password==password).FirstOrDefault();
+            return _context.Users.Where(c => c.Username == username && c.Password == password).FirstOrDefault();
         }
     }
 }

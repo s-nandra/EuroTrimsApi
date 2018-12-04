@@ -11,9 +11,10 @@ using System;
 namespace EuroTrim.api.Migrations
 {
     [DbContext(typeof(EuroTrimContext))]
-    partial class EuroTrimContextModelSnapshot : ModelSnapshot
+    [Migration("20181121221130_productAllocation")]
+    partial class productAllocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

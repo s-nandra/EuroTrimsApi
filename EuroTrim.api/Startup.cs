@@ -136,7 +136,7 @@ namespace EuroTrim.api
               (expirationModelOptions)
               =>
               {
-                  expirationModelOptions.MaxAge = 600;
+                  expirationModelOptions.MaxAge = 9600;
               },
               (validationModelOptions)
               =>
@@ -231,6 +231,8 @@ namespace EuroTrim.api
                 cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
                 cfg.CreateMap<Entities.User, Models.UserDto>();
                 cfg.CreateMap<Entities.Update, Models.UpdateDto>();
+                cfg.CreateMap<Entities.DiscountBand, Models.DiscountBandDto>();
+                cfg.CreateMap<Entities.CustomerProductAllocation, Models.CustomerProductAllocationDto>();
 
 
             });

@@ -26,14 +26,16 @@ namespace EuroTrim.api.Models
         public decimal BuyPrice { get; set; }
         public decimal DutyPrice { get; set; }
         public decimal ListPrice { get; set; }
-        public decimal Discount1 { get; set; }
-        public decimal Discount2 { get; set; }
-        public decimal Discount3 { get; set; }
-        public decimal Discount4 { get; set; }
+
         public int Quantity { get; set; }
 
+        public decimal BandA { get; set; }
+        public decimal BandB { get; set; }
+        public decimal BandC { get; set; }
+        public decimal BandD { get; set; }
+        public decimal BandE { get; set; }
 
 
-
+        public virtual ICollection<DiscountBandDto> DiscountBands { get; set; }
     }
 }

@@ -11,9 +11,10 @@ using System;
 namespace EuroTrim.api.Migrations
 {
     [DbContext(typeof(EuroTrimContext))]
-    partial class EuroTrimContextModelSnapshot : ModelSnapshot
+    [Migration("20181030211816_discountBandKey")]
+    partial class discountBandKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,32 +67,6 @@ namespace EuroTrim.api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("EuroTrim.api.Entities.CustomerProductAllocation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<Guid>("CustomerId");
-
-                    b.Property<DateTime>("DateOrderCreated");
-
-                    b.Property<int>("DiscountBandId");
-
-                    b.Property<decimal>("DiscountValue");
-
-                    b.Property<Guid>("ProductId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("DiscountBandId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("CustomerProductAllocations");
                 });
 
             modelBuilder.Entity("EuroTrim.api.Entities.DiscountBand", b =>
@@ -192,24 +167,6 @@ namespace EuroTrim.api.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("EuroTrim.api.Entities.CustomerProductAllocation", b =>
-                {
-                    b.HasOne("EuroTrim.api.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("EuroTrim.api.Entities.DiscountBand", "DiscountBand")
-                        .WithMany()
-                        .HasForeignKey("DiscountBandId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("EuroTrim.api.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("EuroTrim.api.Entities.Order", b =>

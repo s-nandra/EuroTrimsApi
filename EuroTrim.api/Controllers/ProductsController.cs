@@ -32,14 +32,24 @@ namespace EuroTrim.api.Controllers
 
         }
  
+        //[HttpGet("api/products/")]
+        //public IActionResult GetProducts()
+        //{
+        //    var productEntities = _euroTrimRepository.GetProducts();
+
+        //    var results = Mapper.Map<IEnumerable<ProductDto>>(productEntities);
+        //    return Ok(results);
+             
+        //}
+
         [HttpGet("api/products/")]
         public IActionResult GetProducts()
         {
-            var productEntities = _euroTrimRepository.GetProducts();
+            var productEntities = _euroTrimRepository.GetProductsWithBands();
 
             var results = Mapper.Map<IEnumerable<ProductDto>>(productEntities);
             return Ok(results);
-             
+
         }
 
         [HttpGet("api/products/{id}", Name = "GetProduct")]
