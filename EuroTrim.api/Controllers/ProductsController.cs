@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 
 namespace EuroTrim.api.Controllers
 {
-    //[Route("api/customer/{id}")]
+     
 
-    [Authorize]
+    //[Authorize]
     public class ProductsController : Controller
     {
         private ILogger<ProductsController> _logger;
@@ -70,9 +70,10 @@ namespace EuroTrim.api.Controllers
 
 
         [HttpPut("api/products/{id}")]
-        public IActionResult UpdateProduct(Guid id,
+        public IActionResult UpdateProduct(
            [FromBody] ProductForUpdateDto product)
         {
+            var id = product.Id;
             
             if (product == null)
             {
@@ -170,43 +171,80 @@ namespace EuroTrim.api.Controllers
             return NoContent();
         }
 
-            /*
-            [HttpGet("api/customers/{customerId}/products")]
-            public IActionResult GetCustomerProducts(Guid customerId)
+
+
+        [HttpPost("api/products")]
+        public IActionResult CreateProduct([FromBody] ProductForCreationDto product)
+        {
+            if (product == null)
             {
-
-                try
-                {
-                    if (!_euroTrimRepository.CustomerExists(customerId))
-                    {
-                        _logger.LogInformation($"Customer with id {customerId} was not found!");
-                        return NotFound();
-                    }
-
-
-                    var customerProducts = _euroTrimRepository.GetProductsForCustomer(customerId);
-
-
-
-                    var customerProductsResults = Mapper.Map<IEnumerable<ProductDto>>(customerProducts);
-
-
-                    return Ok(customerProductsResults);
-
-
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogCritical($"Exceprion wile getting Customer with id {customerId} was not found!", ex);
-                    return StatusCode(500, "A problem happened with your request");
-                }
-
-
-
+                return BadRequest();
+            }
+          
+            if (product.ProdName == null)
+            {
+                return BadRequest();
             }
 
-            [HttpGet("api/customers/{customerId}/products/{productid}")]
-            public IActionResult GetCustomerProduct(Guid customerId, Guid productId)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var entity = Mapper.Map<Product>(product);
+            _euroTrimRepository.AddProduct(entity);
+
+            if (!_euroTrimRepository.Save())
+            {
+                throw new Exception("problem occured");
+                //return StatusCode(500, "A problem occured");
+            }
+
+            var productoReturn = Mapper.Map<ProductDto>(entity);
+
+
+            return CreatedAtRoute("GetProduct", new
+            { id = productoReturn.Id }, productoReturn);
+   
+
+        }
+
+
+        
+        [HttpDelete("api/products/{id}")]
+        public IActionResult DeleteProduct(Guid id)
+        {
+            var product = _euroTrimRepository.GetProduct(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            _euroTrimRepository.DeleteProduct(product);
+
+            if (!_euroTrimRepository.Save())
+            {
+                throw new Exception($"Deleting product {id} failed on save.");
+            }
+            else
+            {
+             
+                _euroTrimRepository.Save();
+
+               
+            }
+
+            _logger.LogInformation(100, $"Product {id} was deleted.");
+
+            return GetProducts();
+        }
+
+        /*
+        [HttpGet("api/customers/{customerId}/products")]
+        public IActionResult GetCustomerProducts(Guid customerId)
+        {
+
+            try
             {
                 if (!_euroTrimRepository.CustomerExists(customerId))
                 {
@@ -214,209 +252,240 @@ namespace EuroTrim.api.Controllers
                     return NotFound();
                 }
 
-                var customerProduct = _euroTrimRepository.GetProductForCustomer(customerId, productId);
 
-                if(customerProduct == null)
-                {
-                    return NotFound();
-                }
+                var customerProducts = _euroTrimRepository.GetProductsForCustomer(customerId);
 
-                //var customerProductResult = new ProductDto()
-                //{
-                //    Id = customerProduct.Id,
-                //    ProdName = customerProduct.ProdName,
-                //    Description = customerProduct.Description
-                //};
 
-                var customerProductResult = Mapper.Map<ProductDto>(customerProduct);
 
-                return Ok(customerProductResult);
+                var customerProductsResults = Mapper.Map<IEnumerable<ProductDto>>(customerProducts);
 
+
+                return Ok(customerProductsResults);
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical($"Exceprion wile getting Customer with id {customerId} was not found!", ex);
+                return StatusCode(500, "A problem happened with your request");
             }
 
 
 
+        }
 
-
-
-            [HttpPost("api/products")]
-            public IActionResult CreateProduct([FromBody] ProductForCreationDto product)
+        [HttpGet("api/customers/{customerId}/products/{productid}")]
+        public IActionResult GetCustomerProduct(Guid customerId, Guid productId)
+        {
+            if (!_euroTrimRepository.CustomerExists(customerId))
             {
-                if (product == null)
+                _logger.LogInformation($"Customer with id {customerId} was not found!");
+                return NotFound();
+            }
+
+            var customerProduct = _euroTrimRepository.GetProductForCustomer(customerId, productId);
+
+            if(customerProduct == null)
+            {
+                return NotFound();
+            }
+
+            //var customerProductResult = new ProductDto()
+            //{
+            //    Id = customerProduct.Id,
+            //    ProdName = customerProduct.ProdName,
+            //    Description = customerProduct.Description
+            //};
+
+            var customerProductResult = Mapper.Map<ProductDto>(customerProduct);
+
+            return Ok(customerProductResult);
+
+        }
+
+
+
+
+
+
+        [HttpPost("api/products")]
+        public IActionResult CreateProduct([FromBody] ProductForCreationDto product)
+        {
+            if (product == null)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var products = ProductsDataStore.Current.Products.ToList();
+            var maxprodid = products.Max(p => p.Id);
+
+            //var maxprodid = ProductsDataStore.Current.Products.Max(p => p.Id);
+
+            var newProduct = new ProductDto()
+            {
+
+                Id = ++maxprodid,
+                PartNo = product.PartNo,
+                ProdName = product.ProdName,
+                Description = product.Description
+            };
+
+
+
+            products.Add(newProduct);
+
+            return CreatedAtRoute("GetProduct", new
+            { id = newProduct.Id }, newProduct);
+
+        }
+
+        [HttpPut("api/products/{id}")]
+        public IActionResult UpdateProduct(int id,
+            [FromBody] ProductForUpdateDto product)
+        {
+            if (product == null)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var productToUpdate = ProductsDataStore.Current.Products.FirstOrDefault(
+                p => p.Id == id);
+
+            if (productToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            productToUpdate.PartNo = product.PartNo;
+            productToUpdate.ProdName = product.ProdName;
+
+            //product.Category - product.Category;
+            productToUpdate.Description = product.Description;
+            productToUpdate.Colour = product.Colour;
+            productToUpdate.Size = product.Size;
+            productToUpdate.BuyPrice = product.BuyPrice;
+            productToUpdate.Discount1 = product.Discount1;
+            productToUpdate.Discount2 = product.Discount2;
+            productToUpdate.Discount3 = product.Discount3;
+            productToUpdate.Discount4 = product.Discount4;
+
+
+            return NoContent();
+
+        }
+
+        [HttpPatch("api/products/{id}")]
+        public IActionResult PartiallyUpdateProduct(int id,
+            [FromBody] JsonPatchDocument<ProductForUpdateDto> product)
+        {
+            if (product == null)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var productToUpdate = ProductsDataStore.Current.Products.FirstOrDefault(
+                p => p.Id == id);
+
+            if (productToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            var patchProduct =
+                new ProductForUpdateDto()
                 {
-                    return BadRequest();
-                }
 
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var products = ProductsDataStore.Current.Products.ToList();
-                var maxprodid = products.Max(p => p.Id);
-
-                //var maxprodid = ProductsDataStore.Current.Products.Max(p => p.Id);
-
-                var newProduct = new ProductDto()
-                {
-
-                    Id = ++maxprodid,
-                    PartNo = product.PartNo,
-                    ProdName = product.ProdName,
-                    Description = product.Description
+                    PartNo = productToUpdate.PartNo,
+                    ProdName = productToUpdate.ProdName,
+                    //product.Category - product.Category;
+                    Description = productToUpdate.Description,
+                    Colour = productToUpdate.Colour,
+                    Size = productToUpdate.Size,
+                    BuyPrice = productToUpdate.BuyPrice,
+                    Discount1 = productToUpdate.Discount1,
+                    Discount2 = productToUpdate.Discount2,
+                    Discount3 = productToUpdate.Discount3,
+                    Discount4 = productToUpdate.Discount4
                 };
 
 
+            product.ApplyTo(patchProduct, ModelState);
 
-                products.Add(newProduct);
-
-                return CreatedAtRoute("GetProduct", new
-                { id = newProduct.Id }, newProduct);
-
-            }
-
-            [HttpPut("api/products/{id}")]
-            public IActionResult UpdateProduct(int id,
-                [FromBody] ProductForUpdateDto product)
+            if (!ModelState.IsValid)
             {
-                if (product == null)
-                {
-                    return BadRequest();
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var productToUpdate = ProductsDataStore.Current.Products.FirstOrDefault(
-                    p => p.Id == id);
-
-                if (productToUpdate == null)
-                {
-                    return NotFound();
-                }
-
-                productToUpdate.PartNo = product.PartNo;
-                productToUpdate.ProdName = product.ProdName;
-
-                //product.Category - product.Category;
-                productToUpdate.Description = product.Description;
-                productToUpdate.Colour = product.Colour;
-                productToUpdate.Size = product.Size;
-                productToUpdate.BuyPrice = product.BuyPrice;
-                productToUpdate.Discount1 = product.Discount1;
-                productToUpdate.Discount2 = product.Discount2;
-                productToUpdate.Discount3 = product.Discount3;
-                productToUpdate.Discount4 = product.Discount4;
-
-
-                return NoContent();
+                return BadRequest(ModelState);
 
             }
 
-            [HttpPatch("api/products/{id}")]
-            public IActionResult PartiallyUpdateProduct(int id,
-                [FromBody] JsonPatchDocument<ProductForUpdateDto> product)
+            if (productToUpdate.ProdName == patchProduct.Description)
             {
-                if (product == null)
-                {
-                    return BadRequest();
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var productToUpdate = ProductsDataStore.Current.Products.FirstOrDefault(
-                    p => p.Id == id);
-
-                if (productToUpdate == null)
-                {
-                    return NotFound();
-                }
-
-                var patchProduct =
-                    new ProductForUpdateDto()
-                    {
-
-                        PartNo = productToUpdate.PartNo,
-                        ProdName = productToUpdate.ProdName,
-                        //product.Category - product.Category;
-                        Description = productToUpdate.Description,
-                        Colour = productToUpdate.Colour,
-                        Size = productToUpdate.Size,
-                        BuyPrice = productToUpdate.BuyPrice,
-                        Discount1 = productToUpdate.Discount1,
-                        Discount2 = productToUpdate.Discount2,
-                        Discount3 = productToUpdate.Discount3,
-                        Discount4 = productToUpdate.Discount4
-                    };
-
-
-                product.ApplyTo(patchProduct, ModelState);
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-
-                }
-
-                if (productToUpdate.ProdName == patchProduct.Description)
-                {
-                    ModelState.AddModelError("Description", "Description cant be same as name");
-                }
-
-                TryValidateModel(patchProduct);
-
-                productToUpdate.PartNo = patchProduct.PartNo;
-                productToUpdate.ProdName = patchProduct.ProdName;
-
-                //product.Category - product.Category;
-                productToUpdate.Description = patchProduct.Description;
-                productToUpdate.Colour = patchProduct.Colour;
-                productToUpdate.Size = patchProduct.Size;
-                productToUpdate.BuyPrice = patchProduct.BuyPrice;
-                productToUpdate.Discount1 = patchProduct.Discount1;
-                productToUpdate.Discount2 = patchProduct.Discount2;
-                productToUpdate.Discount3 = patchProduct.Discount3;
-                productToUpdate.Discount4 = patchProduct.Discount4;
-
-                return NoContent();
-
+                ModelState.AddModelError("Description", "Description cant be same as name");
             }
 
+            TryValidateModel(patchProduct);
 
-            [HttpDelete("api/products/{productId}")]
-            public IActionResult DeleteProduct(Guid productId)
-            {
+            productToUpdate.PartNo = patchProduct.PartNo;
+            productToUpdate.ProdName = patchProduct.ProdName;
 
-                if (!_euroTrimRepository.ProductExists(productId))
-                {
-                    return NotFound();
-                }
+            //product.Category - product.Category;
+            productToUpdate.Description = patchProduct.Description;
+            productToUpdate.Colour = patchProduct.Colour;
+            productToUpdate.Size = patchProduct.Size;
+            productToUpdate.BuyPrice = patchProduct.BuyPrice;
+            productToUpdate.Discount1 = patchProduct.Discount1;
+            productToUpdate.Discount2 = patchProduct.Discount2;
+            productToUpdate.Discount3 = patchProduct.Discount3;
+            productToUpdate.Discount4 = patchProduct.Discount4;
 
-                var productEntity = _euroTrimRepository.GetProduct(productId);
-
-                if (productEntity == null)
-                {
-                    return NotFound();
-                }
-
-                _euroTrimRepository.DeleteProduct(productEntity);
-
-                if (!_euroTrimRepository.Save())
-                {
-                    return StatusCode(500, "A problem occured while deleting your product");
-                }
-
-                _mailService.Send("product deleted", $"Product {productEntity.ProdName} with id {productEntity.Id} was deleted");
-
-
-                return NoContent();
-            }
-            */
+            return NoContent();
 
         }
+
+
+        [HttpDelete("api/products/{productId}")]
+        public IActionResult DeleteProduct(Guid productId)
+        {
+
+            if (!_euroTrimRepository.ProductExists(productId))
+            {
+                return NotFound();
+            }
+
+            var productEntity = _euroTrimRepository.GetProduct(productId);
+
+            if (productEntity == null)
+            {
+                return NotFound();
+            }
+
+            _euroTrimRepository.DeleteProduct(productEntity);
+
+            if (!_euroTrimRepository.Save())
+            {
+                return StatusCode(500, "A problem occured while deleting your product");
+            }
+
+            _mailService.Send("product deleted", $"Product {productEntity.ProdName} with id {productEntity.Id} was deleted");
+
+
+            return NoContent();
+        }
+        */
+
+    }
 }

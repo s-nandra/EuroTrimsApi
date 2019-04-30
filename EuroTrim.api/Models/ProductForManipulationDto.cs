@@ -8,6 +8,8 @@ namespace EuroTrim.api.Models
 {
     public abstract class ProductForManipulationDto
     {
+        public Guid Id { get; set; }
+
         [Required(ErrorMessage ="Please enter a part number")]
         [MaxLength(100)]
         public string PartNo { get; set; }

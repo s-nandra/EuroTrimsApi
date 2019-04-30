@@ -52,6 +52,24 @@ namespace EuroTrim.api.Services
             }
         }
 
+
+        public void AddCustomerDiscountAllocation(CustomerProductAllocation cpa)
+        {
+            if (cpa.Id == Guid.Empty)
+            {
+                cpa.Id = Guid.NewGuid();
+
+            }
+
+            _context.CustomerProductAllocations.Add(cpa);
+
+        }
+
+        public void UpdateCustomerDiscountAllocation(CustomerProductAllocation cpa)
+        {
+            _context.CustomerProductAllocations.Update(cpa);
+        }
+
         /*public Customer GetCustomer(Guid customerId, bool includeProduct)
         {
             if (includeProduct)
@@ -203,10 +221,42 @@ namespace EuroTrim.api.Services
 
        
 
-        public CustomerProductAllocation GetCustomerProductAllocationByCustomerId(Guid customerId)
+        public IEnumerable<CustomerProductAllocationDto> GetCustomerProductAllocationByCustomerId(Guid customerId)
+        {
+
+            var query = (from cpa in _context.CustomerProductAllocations
+                         join products in _context.Products on cpa.ProductId equals products.Id
+                         join customers in _context.Customers on cpa.CustomerId equals customers.Id
+                         join discountBands in _context.DiscountBands on cpa.DiscountBandId equals discountBands.Id
+                         where cpa.CustomerId == customerId
+                         select new CustomerProductAllocationDto
+                         { 
+                             Id=cpa.Id,
+                             DiscountBandId=cpa.DiscountBandId,
+                             DiscountBand=cpa.DiscountBand,
+                             Customer=cpa.Customer,
+                             Product=cpa.Product,
+                             CustomerId = cpa.CustomerId,
+                             ProductId = cpa.ProductId
+                         
+                         }
+             );
+
+            return query.ToList();
+
+        }
+
+        public CustomerProductAllocation GetCustomerProductAllocationByCustomerIdandProductId(Guid customerId, Guid productId)
         {
             return _context.CustomerProductAllocations
-                .Where(o => o.CustomerId == customerId).FirstOrDefault();
+                .Where(o => o.CustomerId == customerId
+                && o.ProductId==productId).FirstOrDefault();
+        }
+
+        public CustomerProductAllocation GetCustomerProductAllocationById(Guid id)
+        {
+            return _context.CustomerProductAllocations
+                .Where(o => o.Id == id).FirstOrDefault();
         }
 
 
@@ -219,7 +269,9 @@ namespace EuroTrim.api.Services
 
         public void AddProduct(Product product)
         {
-            throw new NotImplementedException();
+            product.Id = Guid.NewGuid();
+            _context.Products.Add(product);
+
         }
 
         public void DeleteProduct(Product product)
@@ -239,7 +291,7 @@ namespace EuroTrim.api.Services
 
         public void UpdateProduct(Product product)
         {
-
+            _context.Products.Update(product);
         }
 
         public bool Save()
@@ -333,6 +385,8 @@ namespace EuroTrim.api.Services
             var dis = _context.DiscountBands.ToList();
             return dis;
         }
+
+      
 
 
         public IEnumerable<User> GetUsers()

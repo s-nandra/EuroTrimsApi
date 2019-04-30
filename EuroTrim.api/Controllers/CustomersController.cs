@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace EuroTrim.api.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/customers")]
     public class CustomersController : Controller
     {
@@ -352,6 +352,7 @@ namespace EuroTrim.api.Controllers
             Response.Headers.Add("Allow", "GET,OPTIONS,POST");
             return Ok();
         }
+
 
          
     }

@@ -17,6 +17,7 @@ using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.SpaServices.Webpack;
 
 namespace EuroTrim.api
 {
@@ -183,6 +184,12 @@ namespace EuroTrim.api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                {
+                    HotModuleReplacement = true,
+                    ReactHotModuleReplacement = true
+                });
             }
             else
             {
@@ -212,6 +219,8 @@ namespace EuroTrim.api
             app.UseCors(builder =>
                 builder.WithOrigins("http://eurotrimapi.azurewebsites.net").AllowAnyHeader());
 
+            app.UseCors(builder =>
+              builder.WithOrigins("http://localhost").AllowAnyHeader());
             //euroTrimContext.EnsureSeedDataForContext();
 
             //app.UseStatusCodePages();
@@ -222,10 +231,12 @@ namespace EuroTrim.api
                 cfg.CreateMap<Entities.Order, Models.OrderDto>();
                 cfg.CreateMap<Models.CustomerForCreationDto, Entities.Customer>();
                 cfg.CreateMap<Models.OrderForCreationDto, Entities.Order>();
+                cfg.CreateMap<Models.CustomerProductAllocationDto, Entities.CustomerProductAllocation>();
+                
                 cfg.CreateMap<Entities.Product, Models.ProductDto>();
                 cfg.CreateMap<Models.ProductForUpdateDto, Entities.Product>();
                 cfg.CreateMap<Entities.Product, Models.ProductForUpdateDto>();
-
+                cfg.CreateMap<Models.CustomerProductAllocationCreationDto, Entities.CustomerProductAllocation>();
                 cfg.CreateMap<Entities.Customer, Models.CustomersWithoutProductsDto>();
  
                 cfg.CreateMap<Models.ProductForCreationDto, Entities.Product>();
@@ -244,6 +255,19 @@ namespace EuroTrim.api
 
             app.UseCors("AllowAll");
             app.UseMvc();
+
+            //app.UseStaticFiles();
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=Index}/{id?}");
+
+            //    routes.MapSpaFallbackRoute(
+            //        name: "spa-fallback",
+            //        defaults: new { controller = "Home", action = "Index" });
+            //});
 
         }
     }

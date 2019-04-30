@@ -13,6 +13,7 @@ namespace EuroTrim.api.Controllers
     public class DiscountBandsController : Controller
     {
         private IEuroTrimRepository _euroTrimRepository;
+        
 
         public DiscountBandsController(IEuroTrimRepository euroTrimRepository)
         {
@@ -29,14 +30,6 @@ namespace EuroTrim.api.Controllers
             return Ok(discountBands);
         }
 
-        [HttpPost()]
-        public IActionResult AddDiscountBand(Guid customerId, Guid productId, int discountBandId)
-        {
-            var discountBandsfromRepo = _euroTrimRepository.GetDiscountBands();
 
-            var discountBands = Mapper.Map<IEnumerable<DiscountBand>>(discountBandsfromRepo);
-
-            return Ok(discountBands);
-        }
     }
 }
